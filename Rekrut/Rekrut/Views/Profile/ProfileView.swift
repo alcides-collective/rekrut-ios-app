@@ -6,13 +6,13 @@
 //
 
 import SwiftUI
+import AuthenticationServices
 
 struct ProfileView: View {
     @StateObject private var firebaseService = FirebaseService.shared
     @StateObject private var authViewModel = AuthViewModel()
-    @State private var showingLogin = false
-    @State private var showingSignUp = false
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         NavigationView {
@@ -20,10 +20,7 @@ struct ProfileView: View {
                 if firebaseService.isAuthenticated, let user = firebaseService.currentUser {
                     AuthenticatedProfileView(user: user, authViewModel: authViewModel)
                 } else {
-                    UnauthenticatedProfileView(
-                        showingLogin: $showingLogin,
-                        showingSignUp: $showingSignUp
-                    )
+                    UnauthenticatedProfileView(authViewModel: authViewModel, colorScheme: colorScheme)
                 }
             }
             .toolbar {
@@ -33,12 +30,6 @@ struct ProfileView: View {
                     }
                 }
             }
-        }
-        .sheet(isPresented: $showingLogin) {
-            LoginView()
-        }
-        .sheet(isPresented: $showingSignUp) {
-            SignUpView()
         }
     }
 }
@@ -67,11 +58,14 @@ struct AuthenticatedProfileView: View {
                 .padding(.top)
                 
                 VStack(spacing: 0) {
-                    ProfileMenuItem(
-                        icon: "bookmark.fill",
-                        title: "Zapisane kierunki",
-                        count: user.savedPrograms.count
-                    )
+                    NavigationLink(destination: BookmarkedProgramsView()) {
+                        ProfileMenuItem(
+                            icon: "bookmark.fill",
+                            title: "Zapisane kierunki",
+                            count: user.savedPrograms.count
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
                     
                     Divider()
                     
@@ -122,59 +116,121 @@ struct AuthenticatedProfileView: View {
 }
 
 struct UnauthenticatedProfileView: View {
-    @Binding var showingLogin: Bool
-    @Binding var showingSignUp: Bool
+    let authViewModel: AuthViewModel
+    let colorScheme: ColorScheme
+    @State private var currentFeatureIndex = 0
+    
+    let features = [
+        "Zapisuj ulubione kierunki",
+        "Porównuj programy studiów",
+        "Otrzymuj powiadomienia o terminach",
+        "Bezpieczne logowanie z Apple ID"
+    ]
     
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "person.crop.circle.fill")
-                .font(.system(size: 80))
-                .foregroundColor(.blue)
-                .padding()
+        VStack(spacing: 30) {
+            Spacer()
             
-            Text("Twój Profil")
-                .font(.title)
-                .bold()
+            // Icon and title
+            VStack(spacing: 20) {
+                Image(systemName: "person.crop.circle.badge.checkmark")
+                    .font(.system(size: 80))
+                    .foregroundColor(.blue)
+                    .symbolRenderingMode(.hierarchical)
+                
+                Text("Twój Profil")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                
+                Text("Zaloguj się, aby korzystać\nze wszystkich funkcji")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
             
-            Text("Zaloguj się, aby zapisać swoje preferencje")
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
+            // Animated feature display
+            VStack(spacing: 20) {
+                Text(features[currentFeatureIndex])
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.center)
+                    .frame(height: 50)
+                    .animation(.easeInOut(duration: 0.3), value: currentFeatureIndex)
+                    .transition(.opacity)
+                    .id(currentFeatureIndex)
+                
+                // Progress dots
+                HStack(spacing: 8) {
+                    ForEach(0..<features.count, id: \.self) { index in
+                        Circle()
+                            .fill(index == currentFeatureIndex ? Color.blue : Color.gray.opacity(0.3))
+                            .frame(width: 8, height: 8)
+                            .animation(.easeInOut(duration: 0.3), value: currentFeatureIndex)
+                    }
+                }
+            }
+            .padding(.horizontal, 40)
+            .onAppear {
+                startFeatureAnimation()
+            }
             
             Spacer()
             
-            VStack(spacing: 15) {
-                Button(action: {
-                    showingLogin = true
-                }) {
-                    Text("Zaloguj się")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
+            // Sign in with Apple button - direct integration
+            SignInWithAppleButton(
+                .signIn,
+                onRequest: { request in
+                    request.requestedScopes = [.fullName, .email]
+                    request.nonce = authViewModel.sha256(authViewModel.currentNonce ?? "")
+                },
+                onCompletion: { result in
+                    Task {
+                        await authViewModel.handleSignInWithAppleResult(result)
+                    }
                 }
-                
-                Button(action: {
-                    showingSignUp = true
-                }) {
-                    Text("Utwórz konto")
-                        .font(.headline)
-                        .foregroundColor(.blue)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue.opacity(0.1))
-                        .cornerRadius(10)
-                }
-            }
+            )
+            .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+            .frame(height: 50)
+            .cornerRadius(10)
             .padding(.horizontal)
+            
+            Text("Kontynuuj z Apple ID")
+                .font(.caption)
+                .foregroundColor(.secondary)
             
             Spacer()
         }
-        .background(Color.white)
         .navigationTitle("Profil")
         .navigationBarTitleDisplayMode(.inline)
+    }
+    
+    private func startFeatureAnimation() {
+        Timer.scheduledTimer(withTimeInterval: 2.5, repeats: true) { timer in
+            withAnimation {
+                currentFeatureIndex = (currentFeatureIndex + 1) % features.count
+            }
+        }
+    }
+}
+
+struct ProfileFeatureRow: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(.blue)
+                .frame(width: 30)
+            
+            Text(text)
+                .font(.subheadline)
+                .foregroundColor(.primary)
+            
+            Spacer()
+        }
     }
 }
 

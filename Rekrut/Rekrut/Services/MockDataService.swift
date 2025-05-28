@@ -134,8 +134,8 @@ class MockDataService {
             availableSlots: 200,
             lastYearThreshold: 85.5,
             tags: ["AI", "Machine Learning", "Algorytmy"],
-            imageURL: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=800",
-            thumbnailURL: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400",
+            imageURL: "https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            thumbnailURL: "https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
             applicationURL: "https://irk.uw.edu.pl/kierunki/informatyka"
         ),
         StudyProgram(

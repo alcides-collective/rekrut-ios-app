@@ -109,9 +109,7 @@ struct UniversityListView: View {
                 } else {
                     List {
                         ForEach(filteredUniversities) { university in
-                            NavigationLink(destination: UniversityDetailView(university: university)) {
-                                UniversityRowView(university: university)
-                            }
+                            UniversityRowWithSheet(university: university)
                         }
                     }
                     .listStyle(PlainListStyle())
@@ -136,6 +134,32 @@ struct UniversityListView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.universities = mockData.mockUniversities
             self.isLoading = false
+        }
+    }
+}
+
+struct UniversityRowWithSheet: View {
+    let university: University
+    @State private var showingDetail = false
+    
+    var body: some View {
+        Button(action: {
+            showingDetail = true
+        }) {
+            UniversityRowView(university: university)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .sheet(isPresented: $showingDetail) {
+            NavigationView {
+                UniversityDetailView(university: university)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Zamknij") {
+                                showingDetail = false
+                            }
+                        }
+                    }
+            }
         }
     }
 }

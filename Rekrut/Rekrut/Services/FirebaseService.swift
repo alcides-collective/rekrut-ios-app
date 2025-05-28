@@ -40,16 +40,31 @@ class FirebaseService: ObservableObject {
         }
     }
     
-    func signIn(email: String, password: String) async throws {
-        let result = try await auth.signIn(withEmail: email, password: password)
-        fetchUserData(userId: result.user.uid)
-    }
-    
-    func signUp(email: String, password: String) async throws {
-        let result = try await auth.createUser(withEmail: email, password: password)
-        let newUser = User(id: result.user.uid, email: email)
-        try await saveUser(newUser)
-        currentUser = newUser
+    func signInWithApple(credential: AuthCredential, fullName: PersonNameComponents?, email: String?) async throws {
+        let result = try await auth.signIn(with: credential)
+        
+        // Check if this is a new user
+        let isNewUser = result.additionalUserInfo?.isNewUser ?? false
+        
+        if isNewUser {
+            // Create user profile for new Apple ID users
+            var displayName = result.user.displayName
+            
+            // If display name is not provided by Firebase, construct it from PersonNameComponents
+            if displayName == nil, let fullName = fullName {
+                let formatter = PersonNameComponentsFormatter()
+                displayName = formatter.string(from: fullName)
+            }
+            
+            var newUser = User(id: result.user.uid, email: email ?? result.user.email ?? "")
+            newUser.displayName = displayName
+            
+            try await saveUser(newUser)
+            currentUser = newUser
+        } else {
+            // Existing user - just fetch their data
+            fetchUserData(userId: result.user.uid)
+        }
     }
     
     func signOut() throws {

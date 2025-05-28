@@ -226,6 +226,47 @@ struct AIMatchProgramCard: View {
     let reasons: [String]
     @State private var imageLoadFailed = false
     @State private var showingDetail = false
+    @StateObject private var firebaseService = FirebaseService.shared
+    
+    // Calculate user's progress based on their matura scores
+    private var userProgress: Double? {
+        guard program.lastYearThreshold != nil,
+              let user = firebaseService.currentUser,
+              let maturaScores = user.maturaScores,
+              hasEnteredScores(maturaScores) else {
+            return nil
+        }
+        
+        return program.calculateProgress(maturaScores: maturaScores)
+    }
+    
+    private func hasEnteredScores(_ maturaScores: MaturaScores) -> Bool {
+        // Check if user has entered any matura scores
+        return maturaScores.polishBasic != nil ||
+               maturaScores.mathematicsBasic != nil ||
+               maturaScores.polish != nil ||
+               maturaScores.mathematics != nil ||
+               maturaScores.foreignLanguageBasic != nil ||
+               maturaScores.foreignLanguage != nil ||
+               maturaScores.physics != nil ||
+               maturaScores.computerScience != nil ||
+               maturaScores.chemistry != nil ||
+               maturaScores.biology != nil
+    }
+    
+    private func getProgressColor() -> Color {
+        if let progress = userProgress {
+            if progress >= 1.0 {
+                return .green
+            } else if progress >= 0.8 {
+                return .yellow
+            } else {
+                return .red
+            }
+        }
+        // Gray color if no user data entered
+        return .gray
+    }
     
     var body: some View {
         Button(action: {
@@ -353,10 +394,30 @@ struct AIMatchProgramCard: View {
                     // Info pills
                     HStack(spacing: 8) {
                         if let threshold = program.lastYearThreshold {
-                            InfoPill(
-                                icon: "chart.line.uptrend.xyaxis",
-                                text: "\(Int(threshold)) pkt"
-                            )
+                            HStack(spacing: 4) {
+                                Circle()
+                                    .fill(getProgressColor())
+                                    .frame(width: 6, height: 6)
+                                
+                                if let progress = userProgress, progress > 1.0 {
+                                    Text("+\(Int((progress - 1.0) * 100))%")
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.green)
+                                } else if userProgress == nil {
+                                    Text("Wprowadź maturę")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                } else {
+                                    Text("\(Int(threshold)) pkt")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(16)
                         } else {
                             InfoPill(
                                 icon: "questionmark.circle",
@@ -389,9 +450,13 @@ struct AIMatchProgramCard: View {
         .sheet(isPresented: $showingDetail) {
             NavigationView {
                 ProgramDetailView(program: program, university: university)
-                    .navigationBarItems(trailing: Button("Zamknij") {
-                        showingDetail = false
-                    })
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Zamknij") {
+                                showingDetail = false
+                            }
+                        }
+                    }
             }
         }
     }

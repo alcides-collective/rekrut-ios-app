@@ -91,13 +91,11 @@ struct CategoryProgramsView: View {
                     // Programs list
                     VStack(spacing: 12) {
                         ForEach(programs) { program in
-                            NavigationLink(destination: ProgramDetailView(
+                            ProgramRowCardWithSheet(
                                 program: program,
+                                categoryColor: categoryColor,
                                 university: MockDataService.shared.mockUniversities.first { $0.id == program.universityId }!
-                            )) {
-                                ProgramRowCard(program: program, categoryColor: categoryColor)
-                            }
-                            .buttonStyle(PlainButtonStyle())
+                            )
                         }
                     }
                     .padding(.horizontal)
@@ -228,9 +226,82 @@ struct SubcategoryChip: View {
     }
 }
 
+struct ProgramRowCardWithSheet: View {
+    let program: StudyProgram
+    let categoryColor: Color
+    let university: University
+    @State private var showingDetail = false
+    
+    var body: some View {
+        Button(action: {
+            showingDetail = true
+        }) {
+            ProgramRowCard(
+                program: program,
+                categoryColor: categoryColor
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+        .sheet(isPresented: $showingDetail) {
+            NavigationView {
+                ProgramDetailView(program: program, university: university)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Zamknij") {
+                                showingDetail = false
+                            }
+                        }
+                    }
+            }
+        }
+    }
+}
+
 struct ProgramRowCard: View {
     let program: StudyProgram
     let categoryColor: Color
+    @StateObject private var firebaseService = FirebaseService.shared
+    
+    private var isSaved: Bool {
+        firebaseService.currentUser?.savedPrograms.contains(program.id) ?? false
+    }
+    
+    // Calculate user's progress based on their matura scores
+    private var userProgress: Double? {
+        guard let threshold = program.lastYearThreshold,
+              let user = firebaseService.currentUser,
+              let maturaScores = user.maturaScores,
+              hasEnteredScores(maturaScores) else {
+            return nil
+        }
+        
+        // Simple calculation - in real app this would use program's formula
+        let userPoints = calculateUserPoints(maturaScores: maturaScores)
+        return userPoints / threshold
+    }
+    
+    private func hasEnteredScores(_ maturaScores: MaturaScores) -> Bool {
+        // Check if user has entered any matura scores
+        return maturaScores.polishBasic != nil ||
+               maturaScores.mathematicsBasic != nil ||
+               maturaScores.polish != nil ||
+               maturaScores.mathematics != nil ||
+               maturaScores.foreignLanguageBasic != nil ||
+               maturaScores.foreignLanguage != nil ||
+               maturaScores.physics != nil ||
+               maturaScores.computerScience != nil ||
+               maturaScores.chemistry != nil ||
+               maturaScores.biology != nil
+    }
+    
+    private func calculateUserPoints(maturaScores: MaturaScores) -> Double {
+        // Simplified calculation - in real app would use program-specific formula
+        var total = 0.0
+        if let math = maturaScores.mathematics { total += Double(math) }
+        if let polish = maturaScores.polish { total += Double(polish) }
+        if let foreign = maturaScores.foreignLanguage { total += Double(foreign) }
+        return total / 3.0 // Average for simplicity
+    }
     
     var body: some View {
         HStack(spacing: 16) {
@@ -256,9 +327,27 @@ struct ProgramRowCard: View {
                 
                 HStack(spacing: 12) {
                     if let threshold = program.lastYearThreshold {
-                        Label("\(Int(threshold)) pkt", systemImage: "chart.line.uptrend.xyaxis")
-                            .font(.caption)
-                            .foregroundColor(.blue)
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(getProgressColor())
+                                .frame(width: 6, height: 6)
+                            
+                            // Show +X% if user is above threshold
+                            if let progress = userProgress, progress > 1.0 {
+                                Text("+\(Int((progress - 1.0) * 100))%")
+                                    .font(.caption)
+                                    .foregroundColor(.green)
+                            } else if userProgress == nil {
+                                // User hasn't entered matura scores
+                                Text("Wprowadź maturę")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            } else {
+                                Text("\(Int(threshold)) pkt")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
                     } else {
                         Label("Brak danych", systemImage: "questionmark.circle")
                             .font(.caption)
@@ -279,6 +368,12 @@ struct ProgramRowCard: View {
             
             Spacer()
             
+            if isSaved {
+                Image(systemName: "bookmark.fill")
+                    .font(.caption)
+                    .foregroundColor(.blue)
+            }
+            
             Image(systemName: "chevron.right")
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -287,6 +382,20 @@ struct ProgramRowCard: View {
         .background(Color.white)
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.05), radius: 5)
+    }
+    
+    private func getProgressColor() -> Color {
+        if let progress = userProgress {
+            if progress >= 1.0 {
+                return .green
+            } else if progress >= 0.8 {
+                return .yellow
+            } else {
+                return .red
+            }
+        }
+        // Gray color if no user data entered
+        return .gray
     }
 }
 

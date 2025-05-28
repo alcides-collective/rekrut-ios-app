@@ -59,25 +59,24 @@ struct AIMatchView: View {
 
 struct AIMatchStartView: View {
     @Binding var hasStarted: Bool
+    @State private var currentFeatureIndex = 0
+    
+    let features = [
+        "Inteligentna analiza Twoich odpowiedzi",
+        "Spersonalizowane rekomendacje kierunków",
+        "11 prostych pytań o Twoje preferencje",
+        "Wyniki dopasowane do Twoich umiejętności"
+    ]
     
     var body: some View {
         VStack(spacing: 30) {
             Spacer()
             
             // Animated icon
-            ZStack {
-                Circle()
-                    .fill(LinearGradient(
-                        gradient: Gradient(colors: [Color.purple.opacity(0.8), Color.pink.opacity(0.8)]),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ))
-                    .frame(width: 120, height: 120)
-                
-                Image(systemName: "sparkles")
-                    .font(.system(size: 50))
-                    .foregroundColor(.white)
-            }
+            Image(systemName: "sparkles")
+                .font(.system(size: 80))
+                .foregroundColor(.purple)
+                .symbolRenderingMode(.hierarchical)
             
             VStack(spacing: 16) {
                 Text("Dopasowanie AI")
@@ -89,26 +88,31 @@ struct AIMatchStartView: View {
                     .foregroundColor(.secondary)
             }
             
+            // Animated feature display
             VStack(spacing: 20) {
-                FeatureRow(
-                    icon: "brain",
-                    title: "Inteligentna analiza",
-                    description: "AI analizuje Twoje odpowiedzi i preferencje"
-                )
+                Text(features[currentFeatureIndex])
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.center)
+                    .frame(height: 50)
+                    .animation(.easeInOut(duration: 0.3), value: currentFeatureIndex)
+                    .transition(.opacity)
+                    .id(currentFeatureIndex)
                 
-                FeatureRow(
-                    icon: "target",
-                    title: "Spersonalizowane wyniki",
-                    description: "Otrzymasz kierunki dopasowane do Ciebie"
-                )
-                
-                FeatureRow(
-                    icon: "clock",
-                    title: "11 prostych kroków",
-                    description: "Krótki quiz, który może zmienić Twoją przyszłość"
-                )
+                // Progress dots
+                HStack(spacing: 8) {
+                    ForEach(0..<features.count, id: \.self) { index in
+                        Circle()
+                            .fill(index == currentFeatureIndex ? Color.purple : Color.gray.opacity(0.3))
+                            .frame(width: 8, height: 8)
+                            .animation(.easeInOut(duration: 0.3), value: currentFeatureIndex)
+                    }
+                }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 40)
+            .onAppear {
+                startFeatureAnimation()
+            }
             
             Spacer()
             
@@ -130,33 +134,16 @@ struct AIMatchStartView: View {
         }
         .background(Color.white)
     }
-}
-
-struct FeatureRow: View {
-    let icon: String
-    let title: String
-    let description: String
     
-    var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(.purple)
-                .frame(width: 40)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline)
-                
-                Text(description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+    private func startFeatureAnimation() {
+        Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { timer in
+            withAnimation {
+                currentFeatureIndex = (currentFeatureIndex + 1) % features.count
             }
-            
-            Spacer()
         }
     }
 }
+
 
 struct AnimatedBackgroundShape: View {
     let progress: Double

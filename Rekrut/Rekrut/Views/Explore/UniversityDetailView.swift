@@ -236,6 +236,47 @@ struct ProgramsListView: View {
 
 struct ProgramCardView: View {
     let program: StudyProgram
+    @StateObject private var firebaseService = FirebaseService.shared
+    
+    // Calculate user's progress based on their matura scores
+    private var userProgress: Double? {
+        guard program.lastYearThreshold != nil,
+              let user = firebaseService.currentUser,
+              let maturaScores = user.maturaScores,
+              hasEnteredScores(maturaScores) else {
+            return nil
+        }
+        
+        return program.calculateProgress(maturaScores: maturaScores)
+    }
+    
+    private func hasEnteredScores(_ maturaScores: MaturaScores) -> Bool {
+        // Check if user has entered any matura scores
+        return maturaScores.polishBasic != nil ||
+               maturaScores.mathematicsBasic != nil ||
+               maturaScores.polish != nil ||
+               maturaScores.mathematics != nil ||
+               maturaScores.foreignLanguageBasic != nil ||
+               maturaScores.foreignLanguage != nil ||
+               maturaScores.physics != nil ||
+               maturaScores.computerScience != nil ||
+               maturaScores.chemistry != nil ||
+               maturaScores.biology != nil
+    }
+    
+    private func getProgressColor() -> Color {
+        if let progress = userProgress {
+            if progress >= 1.0 {
+                return .green
+            } else if progress >= 0.8 {
+                return .yellow
+            } else {
+                return .red
+            }
+        }
+        // Gray color if no user data entered
+        return .gray
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -264,10 +305,28 @@ struct ProgramCardView: View {
                     .foregroundColor(.secondary)
                 
                 if let threshold = program.lastYearThreshold {
-                    Text("\(Int(threshold)) pkt")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.blue)
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(getProgressColor())
+                            .frame(width: 6, height: 6)
+                        
+                        if let progress = userProgress, progress > 1.0 {
+                            Text("+\(Int((progress - 1.0) * 100))%")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.green)
+                        } else if userProgress == nil {
+                            Text("Wprowadź maturę")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.gray)
+                        } else {
+                            Text("\(Int(threshold)) pkt")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.secondary)
+                        }
+                    }
                 } else {
                     Text("Brak danych")
                         .font(.caption)

@@ -53,8 +53,8 @@ Polish university admission app with proprietary Rekrut Score™ system for stan
 - [x] Dropdown filters (study mode, city, degree)
 - [x] Mixed search results (programs + universities)
 - [x] Recent searches persistence
-- [ ] Detailed university/program views
-- [ ] Bookmark/favorite functionality
+- [x] Detailed university/program views (January 2025)
+- [x] Bookmark/favorite functionality (January 2025)
 
 ## Phase 6: AI Recommendation System ✅
 - [x] 5-step preference questionnaire
@@ -96,11 +96,12 @@ Polish university admission app with proprietary Rekrut Score™ system for stan
 - [ ] Partner university details
 - [ ] Saved programs feature
 
-## Phase 10: User Profile and Settings 🚧
+## Phase 10: User Profile and Settings ✅
 - [x] Implement user registration/login (Firebase Auth)
-- [x] Create login and signup views
+- [x] Apple Sign In only authentication (January 2025)
 - [x] Implement authentication state management
 - [x] Create authenticated/unauthenticated profile views
+- [x] BookmarkedProgramsView in Profile section
 - [ ] Create profile editing interface
 - [ ] Add academic history section
 - [ ] Implement preferences management
@@ -156,9 +157,28 @@ Polish university admission app with proprietary Rekrut Score™ system for stan
 - ✅ Changed duration from years to semesters
 - ✅ Implemented Rekrut Score™ system
 - ✅ Interactive calculator with visual progress bars (December 2024)
-- ✅ Sheet-based navigation for all detail views
+- ✅ Sheet-based navigation for all detail views (January 2025)
 - ✅ Text input fields instead of picker wheels
 - ✅ Smart search replacing complex filters
+- ✅ ProgramDetailView UI improvements (January 2025):
+  - Compact spacing and proper panel styling
+  - Enhanced gradients and visual hierarchy
+  - Simplified Rekrutacja section
+  - Smart progress indicators (+X% above 100%)
+- ✅ Consistent "Zamknij" buttons on all sheet presentations
+- ✅ Dynamic formula-based point calculation system (January 2025):
+  - FormulaCalculator parses university-specific admission formulas
+  - Supports weighted subjects, max functions, and complex formulas
+  - Green dots and +X% indicators on all program cards
+  - Mock user data for testing with high matura scores
+- ✅ Bookmark/favorite functionality (January 2025):
+  - Save programs to profile
+  - BookmarkedProgramsView in Profile section
+  - Bookmark indicators on all program cards
+- ✅ Apple Sign In only authentication (January 2025):
+  - Removed email/password authentication for security
+  - Simplified authentication flow
+  - Direct Sign in with Apple button in Profile
 
 ## Future Enhancements (Post-Launch)
 - [ ] Push notifications for application deadlines

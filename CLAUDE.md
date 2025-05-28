@@ -40,6 +40,24 @@ cmd+b (in Xcode)
 cmd+r (in Xcode)
 ```
 
+## Git Configuration
+
+Repository uses SSH authentication:
+```bash
+# Push changes
+git push origin main
+
+# Pull latest changes
+git pull origin main
+
+# Create and push new branch
+git checkout -b feature/branch-name
+git push -u origin feature/branch-name
+```
+
+SSH key location: `~/.ssh/id_ed25519`
+Remote URL: `git@github.com:alcides-collective/rekrut-ios-app.git`
+
 ## Architecture & Conventions
 
 ### MVVM Pattern
@@ -116,7 +134,56 @@ Rekrut/
 
 ## Recent Changes & Patterns
 
-### Interactive Matura Calculator (NEW - December 2024)
+### Authentication System (January 2025)
+- **Apple Sign In Only**: Removed email/password authentication for enhanced security
+- Simplified authentication flow with direct Sign in with Apple button
+- No separate signup process - Apple handles new user creation
+- Automatic user profile creation on first sign in
+- Mock user data for development testing with high matura scores
+
+### Dynamic Formula-Based Point Calculation (January 2025)
+- **FormulaCalculator Service**: Sophisticated parser for Polish university admission formulas
+- Supports various formula patterns:
+  - Weighted subjects: `0.5 × matematyka (R) + 0.3 × fizyka (R)`
+  - Shorthand notation: `W = 0.5 * MAT_R + 0.3 * INF_R`
+  - Max functions: `max(fizyka, chemia, informatyka)`
+  - Division: `(mat + fiz + język) / 3`
+- Smart subject recognition with Polish aliases
+- Handles both basic (P) and extended (R) levels
+- StudyProgram extension for easy calculation access
+
+### Progress Indicators Across All Cards (January 2025)
+- **Green dots** when user exceeds 100% of threshold
+- **Yellow dots** for 80-99% (good chances)
+- **Red dots** below 80% (lower chances)
+- "+X%" display when above threshold (e.g., "+7%" for 107%)
+- Consistent implementation across:
+  - TrendingProgramCard
+  - RecommendedProgramCard
+  - ProgramRowCard
+  - AIMatchProgramCard
+
+### Bookmark/Favorite Functionality (January 2025)
+- Save programs to user profile
+- BookmarkedProgramsView in Profile section
+- Bookmark indicators on all program cards
+- Swipe to remove from bookmarks
+- Empty state with navigation to Explore
+
+### ProgramDetailView UI Improvements (January 2025)
+- Reduced spacing between program name and university info (8→4pt)
+- Widened essential info panel by reducing padding (24→16pt)
+- Made "Twoje szanse" a proper panel with shadow and rounded corners
+- Decreased panel spacing for more compact layout (32→24pt)
+- Added 60pt top padding to program header
+- Extended gradient overlays: dark gradient (3→7 stops), white gradient (6→10 stops, 200→280pt)
+- Fixed "Termin składania" alignment to be on same line as date
+- Simplified Rekrutacja section with clean VStack layout
+- Changed formula background to secondarySystemBackground for better contrast
+- Increased progress bar thickness (4→8pt)
+- Added smart progress display: nothing at 100%, percentage below 100%, "+X%" above 100%
+
+### Interactive Matura Calculator (v0.0.2 - December 2024)
 - Complete redesign with visual progress bars
 - Text input fields for easy score entry (replaced picker wheels)
 - Split color rendering: black text on white, white text on color
@@ -124,6 +191,9 @@ Rekrut/
 - All subjects visible without dropdowns or expandable sections
 - Performance optimized by removing live program matching
 - RoundedRectangle shapes for proper corner rendering at 100%
+- Right-aligned numbers with minimal spacing to % symbol
+- Placeholder "—" shows when score is empty
+- Single "Gotowe" button on keyboard toolbar
 
 ### Smart Search System (NEW)
 - No filtering UI - intelligent search across all fields
@@ -144,6 +214,7 @@ Rekrut/
 - NavigationViewWithProfile wrapper for consistent header
 - Sheet presentations for all detail views (not push navigation)
 - "Zamknij" buttons on all sheets for consistency
+- Updated UniversityListView and CategoryProgramsView to use sheet presentations
 
 ## Common Tasks
 
@@ -199,6 +270,8 @@ if condition {
 3. **Follow iOS native patterns** - users expect familiarity
 4. **Prioritize UX over features** - simplicity wins
 5. **Test on iOS 15.0** - our minimum deployment target
+6. **Security**: Never commit credentials or tokens to the repository
+7. **Performance**: Test on real devices, especially for animations and gestures
 
 ## 🎓 Proprietary Rekrut Score™ System
 

@@ -68,18 +68,16 @@ struct ProgramDetailView: View {
                     VStack {
                         Spacer()
                         ProgramEssentialsView(program: program)
-                            .padding(.bottom, 30)
+                            .padding(.bottom, 20)
                     }
                 )
                 
-                VStack(alignment: .leading, spacing: 32) {
+                VStack(alignment: .leading, spacing: 24) {
                     // Admission Progress (moved from ProgramEssentialsView)
-                    VStack(spacing: 20) {
-                        if let threshold = program.lastYearThreshold {
-                            AdmissionProgressView(threshold: threshold, applicationURL: program.applicationURL)
-                        } else {
-                            NoThresholdInfoView(applicationURL: program.applicationURL)
-                        }
+                    if let threshold = program.lastYearThreshold {
+                        AdmissionProgressView(threshold: threshold, applicationURL: program.applicationURL, program: program)
+                    } else {
+                        NoThresholdInfoView(applicationURL: program.applicationURL)
                     }
                     
                     // Description
@@ -95,7 +93,7 @@ struct ProgramDetailView: View {
                         ProgramTagsView(tags: program.tags)
                     }
                 }
-                .padding(.top, 24)
+                .padding(.top, 8)
                 .padding(.bottom, 40)
             }
         }
@@ -172,8 +170,12 @@ struct ProgramHeroView: View {
                                     LinearGradient(
                                         gradient: Gradient(colors: [
                                             Color.black.opacity(0),
-                                            Color.black.opacity(0.3),
-                                            Color.black.opacity(0.8)
+                                            Color.black.opacity(0.1),
+                                            Color.black.opacity(0.2),
+                                            Color.black.opacity(0.4),
+                                            Color.black.opacity(0.6),
+                                            Color.black.opacity(0.8),
+                                            Color.black.opacity(0.9)
                                         ]),
                                         startPoint: .top,
                                         endPoint: .bottom
@@ -204,15 +206,12 @@ struct ProgramHeroView: View {
                 VStack {
                     Spacer()
                     
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(program.name)
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
                             .lineLimit(2)
-                        
-                        Spacer()
-                            .frame(height: 8)
                         
                         HStack(spacing: 8) {
                             if let shortName = university.shortName {
@@ -236,6 +235,7 @@ struct ProgramHeroView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
+                    .padding(.top, 60) // Add top padding to move content down
                     .padding(.bottom, 100) // Increased to make room for essential info
                 }
             }
@@ -246,16 +246,20 @@ struct ProgramHeroView: View {
                 LinearGradient(
                     gradient: Gradient(stops: [
                         .init(color: Color.clear, location: 0),
+                        .init(color: Color.white.opacity(0.05), location: 0.1),
                         .init(color: Color.white.opacity(0.1), location: 0.2),
-                        .init(color: Color.white.opacity(0.3), location: 0.4),
-                        .init(color: Color.white.opacity(0.6), location: 0.6),
-                        .init(color: Color.white.opacity(0.85), location: 0.8),
+                        .init(color: Color.white.opacity(0.2), location: 0.3),
+                        .init(color: Color.white.opacity(0.35), location: 0.4),
+                        .init(color: Color.white.opacity(0.5), location: 0.5),
+                        .init(color: Color.white.opacity(0.65), location: 0.6),
+                        .init(color: Color.white.opacity(0.8), location: 0.7),
+                        .init(color: Color.white.opacity(0.9), location: 0.85),
                         .init(color: Color.white, location: 1.0)
                     ]),
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                .frame(height: 200)
+                .frame(height: 280)
             }
         }
         .frame(height: 400)
@@ -301,7 +305,7 @@ struct ProgramEssentialsView: View {
         }
         .background(Color(.secondarySystemBackground))
         .cornerRadius(12)
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 16)
     }
 }
 
@@ -330,20 +334,56 @@ struct EssentialInfoCell: View {
 struct AdmissionProgressView: View {
     let threshold: Double
     let applicationURL: String?
-    @State private var userPoints: Double = 0 // This would come from user's profile/calculation
+    let program: StudyProgram
+    @StateObject private var firebaseService = FirebaseService.shared
+    
+    // Calculate user's progress based on their matura scores
+    private var userProgress: Double? {
+        guard let user = firebaseService.currentUser,
+              let maturaScores = user.maturaScores,
+              hasEnteredScores(maturaScores) else {
+            return nil
+        }
+        
+        return program.calculateProgress(maturaScores: maturaScores)
+    }
+    
+    private func hasEnteredScores(_ maturaScores: MaturaScores) -> Bool {
+        // Check if user has entered any matura scores
+        return maturaScores.polishBasic != nil ||
+               maturaScores.mathematicsBasic != nil ||
+               maturaScores.polish != nil ||
+               maturaScores.mathematics != nil ||
+               maturaScores.foreignLanguageBasic != nil ||
+               maturaScores.foreignLanguage != nil ||
+               maturaScores.physics != nil ||
+               maturaScores.computerScience != nil ||
+               maturaScores.chemistry != nil ||
+               maturaScores.biology != nil
+    }
+    
+    private var userPoints: Double {
+        if let progress = userProgress {
+            return progress * threshold
+        }
+        return 0
+    }
     
     private var progress: Double {
-        min(userPoints / threshold, 1.0)
+        userProgress ?? 0
     }
     
     private var progressColor: Color {
-        if progress >= 1.0 {
-            return .green
-        } else if progress >= 0.8 {
-            return .orange
-        } else {
-            return .red
+        if let userProgress = userProgress {
+            if userProgress >= 1.0 {
+                return .green
+            } else if userProgress >= 0.8 {
+                return .orange
+            } else {
+                return .red
+            }
         }
+        return .gray
     }
     
     var body: some View {
@@ -355,13 +395,24 @@ struct AdmissionProgressView: View {
                         .foregroundColor(.secondary)
                     
                     HStack(spacing: 8) {
-                        Text("\(Int(userPoints))")
-                            .font(.system(.title2, design: .rounded))
-                            .fontWeight(.semibold)
-                            .foregroundColor(progressColor)
-                        + Text(" / \(Int(threshold)) pkt")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                        if userProgress != nil {
+                            Text("\(Int(userPoints))")
+                                .font(.system(.title2, design: .rounded))
+                                .fontWeight(.semibold)
+                                .foregroundColor(progressColor)
+                            + Text(" / \(Int(threshold)) pkt")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        } else {
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(Color.gray)
+                                    .frame(width: 10, height: 10)
+                                Text("Wprowadź maturę")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+                        }
                     }
                 }
                 
@@ -384,8 +435,8 @@ struct AdmissionProgressView: View {
                     }
                 }
             }
-            .padding(.horizontal, 24)
             .padding(.top, 16)
+            .padding(.horizontal, 16)
             .padding(.bottom, 12)
             
             // Progress Bar
@@ -395,19 +446,19 @@ struct AdmissionProgressView: View {
                         // Background track
                         Rectangle()
                             .fill(Color(.systemGray5))
-                            .frame(height: 4)
-                            .cornerRadius(2)
+                            .frame(height: 8)
+                            .cornerRadius(4)
                         
                         // Progress fill
                         Rectangle()
                             .fill(progressColor)
-                            .frame(width: geometry.size.width * progress, height: 4)
-                            .cornerRadius(2)
+                            .frame(width: geometry.size.width * min(progress, 1.0), height: 8)
+                            .cornerRadius(4)
                             .animation(.easeInOut(duration: 0.5), value: progress)
                     }
                 }
-                .frame(height: 4)
-                .padding(.horizontal, 24)
+                .frame(height: 8)
+                .padding(.horizontal, 16)
                 
                 // Progress text
                 HStack {
@@ -418,25 +469,33 @@ struct AdmissionProgressView: View {
                     
                     Spacer()
                     
-                    Text("\(Int(progress * 100))%")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    if let userProgress = userProgress {
+                        if userProgress > 1.0 {
+                            Text("+\(Int((userProgress - 1.0) * 100))%")
+                                .font(.caption)
+                                .foregroundColor(progressColor)
+                                .fontWeight(.medium)
+                        } else {
+                            Text("\(Int(userProgress * 100))%")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 16)
             }
             .padding(.bottom, 16)
         }
-        .onAppear {
-            // Simulate loading user's calculated points
-            // In real app, this would come from user's profile/calculation service
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                userPoints = Double.random(in: 50...threshold * 1.2)
-            }
-        }
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .padding(.horizontal, 16)
     }
     
     private var progressText: String {
-        if progress >= 1.0 {
+        if userProgress == nil {
+            return "Brak danych o maturze"
+        } else if progress >= 1.0 {
             return "Wysokie szanse"
         } else if progress >= 0.8 {
             return "Umiarkowane szanse"
@@ -465,16 +524,16 @@ struct ProgramAdmissionView: View {
     let program: StudyProgram
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 16) {
             Text("Rekrutacja")
                 .font(.title2)
                 .fontWeight(.semibold)
                 .padding(.horizontal, 24)
             
-            VStack(spacing: 0) {
-                // Description
+            VStack(alignment: .leading, spacing: 20) {
+                // Description if available
                 if let description = program.requirements.description {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text("Zasady rekrutacji")
                             .font(.subheadline)
                             .fontWeight(.medium)
@@ -485,79 +544,56 @@ struct ProgramAdmissionView: View {
                             .lineSpacing(3)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 16)
+                }
+                
+                // Formula - simplified
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Wzór punktacji")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
                     
-                    Divider()
-                        .padding(.horizontal, 24)
+                    Text(program.requirements.formula)
+                        .font(.system(.footnote, design: .monospaced))
+                        .foregroundColor(.primary)
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(8)
                 }
                 
-                // Formula
-                AdmissionRow(
-                    label: "Wzór punktacji",
-                    content: AnyView(
-                        Text(program.requirements.formula)
-                            .font(.system(.footnote, design: .monospaced))
-                            .foregroundColor(.primary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(Color(.secondarySystemBackground))
-                            .cornerRadius(8)
-                    )
-                )
-                
-                // Additional exams
+                // Additional exams - only if present
                 if !program.requirements.additionalExams.isEmpty {
-                    AdmissionRow(
-                        label: "Dodatkowe egzaminy",
-                        content: AnyView(
-                            VStack(alignment: .leading, spacing: 6) {
-                                ForEach(program.requirements.additionalExams, id: \.self) { exam in
-                                    Text("• \(exam)")
-                                        .font(.footnote)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                        )
-                    )
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Dodatkowe egzaminy")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        Text(program.requirements.additionalExams.joined(separator: ", "))
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
-                // Deadline
+                // Deadline - simple format
                 if let deadline = program.requirements.deadlineDate {
-                    AdmissionRow(
-                        label: "Termin składania",
-                        content: AnyView(
-                            Text(deadline, style: .date)
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                        )
-                    )
+                    HStack {
+                        Text("Termin:")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        Text(deadline, style: .date)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                    }
                 }
             }
+            .padding(.horizontal, 24)
         }
     }
 }
 
-struct AdmissionRow: View {
-    let label: String
-    let content: AnyView
-    
-    var body: some View {
-        VStack(spacing: 12) {
-            HStack(alignment: .top, spacing: 16) {
-                Text(label)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .frame(width: 120, alignment: .leading)
-                
-                content
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
-        }
-    }
-}
 
 struct ProgramTagsView: View {
     let tags: [String]

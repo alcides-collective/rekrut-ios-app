@@ -6,97 +6,108 @@
 //
 
 import SwiftUI
+import AuthenticationServices
 
 struct LoginView: View {
     @StateObject private var viewModel = AuthViewModel()
-    @State private var email = ""
-    @State private var password = ""
-    @State private var showingSignUp = false
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var currentBenefitIndex = 0
+    
+    let benefits = [
+        "Zapisuj ulubione kierunki studiów",
+        "Porównuj programy i uczelnie",
+        "Otrzymuj spersonalizowane rekomendacje",
+        "Śledź terminy rekrutacji",
+        "Obliczaj swoje szanse przyjęcia"
+    ]
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 25) {
-                VStack(spacing: 10) {
-                    Image(systemName: "graduationcap.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(.blue)
-                    
-                    Text("Witaj w Rekrut")
-                        .font(.largeTitle)
-                        .bold()
-                    
-                    Text("Zaloguj się, aby kontynuować")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.top, 40)
+            VStack(spacing: 40) {
+                Spacer()
                 
+                // App branding
                 VStack(spacing: 20) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Email")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        TextField("twoj@email.com", text: $email)
-                            .textFieldStyle(RoundedTextFieldStyle())
-                            .textContentType(.emailAddress)
-                            .autocapitalization(.none)
-                            .keyboardType(.emailAddress)
-                    }
+                    Image(systemName: "graduationcap.fill")
+                        .font(.system(size: 80))
+                        .foregroundColor(.blue)
+                        .symbolRenderingMode(.hierarchical)
                     
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Hasło")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                    VStack(spacing: 8) {
+                        Text("Rekrut")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
                         
-                        SecureField("Hasło", text: $password)
-                            .textFieldStyle(RoundedTextFieldStyle())
-                            .textContentType(.password)
+                        Text("Twój przewodnik po studiach")
+                            .font(.title3)
+                            .foregroundColor(.secondary)
                     }
                 }
-                .padding(.horizontal)
                 
-                Button(action: {
-                    Task {
-                        await viewModel.signIn(email: email, password: password)
-                        if viewModel.error == nil {
-                            dismiss()
+                // Animated benefit display
+                VStack(spacing: 20) {
+                    Text(benefits[currentBenefitIndex])
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.center)
+                        .frame(height: 50)
+                        .animation(.easeInOut(duration: 0.3), value: currentBenefitIndex)
+                        .transition(.opacity)
+                        .id(currentBenefitIndex)
+                    
+                    // Progress dots
+                    HStack(spacing: 8) {
+                        ForEach(0..<benefits.count, id: \.self) { index in
+                            Circle()
+                                .fill(index == currentBenefitIndex ? Color.blue : Color.gray.opacity(0.3))
+                                .frame(width: 8, height: 8)
+                                .animation(.easeInOut(duration: 0.3), value: currentBenefitIndex)
                         }
                     }
-                }) {
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    } else {
-                        Text("Zaloguj się")
-                            .fontWeight(.semibold)
-                    }
                 }
-                .frame(maxWidth: .infinity)
-                .frame(height: 50)
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(10)
-                .padding(.horizontal)
-                .disabled(viewModel.isLoading || email.isEmpty || password.isEmpty)
-                
-                HStack {
-                    Text("Nie masz konta?")
-                        .foregroundColor(.secondary)
-                    
-                    Button("Zarejestruj się") {
-                        showingSignUp = true
-                    }
-                    .foregroundColor(.blue)
+                .padding(.horizontal, 40)
+                .onAppear {
+                    startBenefitAnimation()
                 }
                 
                 Spacer()
+                
+                // Sign in with Apple button
+                SignInWithAppleButton(
+                    .signIn,
+                    onRequest: { request in
+                        request.requestedScopes = [.fullName, .email]
+                        request.nonce = viewModel.sha256(viewModel.currentNonce ?? "")
+                    },
+                    onCompletion: { result in
+                        Task {
+                            await viewModel.handleSignInWithAppleResult(result)
+                            if viewModel.error == nil {
+                                dismiss()
+                            }
+                        }
+                    }
+                )
+                .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+                .frame(height: 50)
+                .cornerRadius(10)
+                .padding(.horizontal)
+                
+                // Privacy note
+                Text("Twoje dane są bezpieczne dzięki Apple ID")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                
+                Spacer()
+                    .frame(height: 40)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Anuluj") {
+                    Button("Zamknij") {
                         dismiss()
                     }
                 }
@@ -104,21 +115,17 @@ struct LoginView: View {
             .alert("Błąd", isPresented: $viewModel.showError) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text(viewModel.errorMessage ?? "Wystąpił nieznany błąd")
-            }
-            .sheet(isPresented: $showingSignUp) {
-                SignUpView()
+                Text(viewModel.errorMessage ?? "Wystąpił problem z logowaniem")
             }
         }
     }
-}
-
-struct RoundedTextFieldStyle: TextFieldStyle {
-    func _body(configuration: TextField<Self._Label>) -> some View {
-        configuration
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(10)
+    
+    private func startBenefitAnimation() {
+        Timer.scheduledTimer(withTimeInterval: 2.5, repeats: true) { timer in
+            withAnimation {
+                currentBenefitIndex = (currentBenefitIndex + 1) % benefits.count
+            }
+        }
     }
 }
 

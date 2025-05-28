@@ -32,6 +32,48 @@ struct TrendingProgramCard: View {
     let university: University?
     @State private var imageLoadFailed = false
     @State private var showingDetail = false
+    @StateObject private var firebaseService = FirebaseService.shared
+    
+    private var isSaved: Bool {
+        firebaseService.currentUser?.savedPrograms.contains(program.id) ?? false
+    }
+    
+    // Calculate user's progress based on their matura scores
+    private var userProgress: Double? {
+        guard let threshold = program.lastYearThreshold,
+              let user = firebaseService.currentUser,
+              let maturaScores = user.maturaScores,
+              hasEnteredScores(maturaScores) else {
+            return nil
+        }
+        
+        // Simple calculation - in real app this would use program's formula
+        let userPoints = calculateUserPoints(maturaScores: maturaScores)
+        return userPoints / threshold
+    }
+    
+    private func hasEnteredScores(_ maturaScores: MaturaScores) -> Bool {
+        // Check if user has entered any matura scores
+        return maturaScores.polishBasic != nil ||
+               maturaScores.mathematicsBasic != nil ||
+               maturaScores.polish != nil ||
+               maturaScores.mathematics != nil ||
+               maturaScores.foreignLanguageBasic != nil ||
+               maturaScores.foreignLanguage != nil ||
+               maturaScores.physics != nil ||
+               maturaScores.computerScience != nil ||
+               maturaScores.chemistry != nil ||
+               maturaScores.biology != nil
+    }
+    
+    private func calculateUserPoints(maturaScores: MaturaScores) -> Double {
+        // Simplified calculation - in real app would use program-specific formula
+        var total = 0.0
+        if let math = maturaScores.mathematics { total += Double(math) }
+        if let polish = maturaScores.polish { total += Double(polish) }
+        if let foreign = maturaScores.foreignLanguage { total += Double(foreign) }
+        return total / 3.0 // Average for simplicity
+    }
     
     private var backgroundGradient: LinearGradient {
         let colors: [Color] = [.blue, .purple, .green, .orange, .pink].shuffled()
@@ -123,8 +165,17 @@ struct TrendingProgramCard: View {
             .cornerRadius(20)
             .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
             .overlay(
-                // Pills in top right
+                // Pills and bookmark in top right
                 HStack(spacing: 8) {
+                    // Bookmark indicator
+                    if isSaved {
+                        Image(systemName: "bookmark.fill")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(6)
+                            .background(Circle().fill(Color.black.opacity(0.5)))
+                    }
+                    
                     // Degree type pill
                     Text(program.degree == .engineer ? "inż." : program.degree == .bachelor ? "lic." : program.degree == .master ? "mgr" : "mgr")
                         .font(.caption)
@@ -135,15 +186,30 @@ struct TrendingProgramCard: View {
                         .foregroundColor(.black.opacity(0.8))
                         .cornerRadius(12)
                     
-                    // Score indicator
+                    // Score indicator with progress
                     if let threshold = program.lastYearThreshold {
                         HStack(spacing: 4) {
                             Circle()
-                                .fill(getAdmissionChanceColor(threshold: threshold))
+                                .fill(getProgressColor())
                                 .frame(width: 8, height: 8)
-                            Text("\(Int(threshold))")
-                                .font(.caption)
-                                .fontWeight(.semibold)
+                            
+                            // Show +X% if user is above threshold, otherwise show appropriate text
+                            if let progress = userProgress, progress > 1.0 {
+                                Text("+\(Int((progress - 1.0) * 100))%")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.green)
+                            } else if userProgress == nil {
+                                // User hasn't entered matura scores
+                                Text("Wprowadź maturę")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.gray)
+                            } else {
+                                Text("\(Int(threshold))")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                            }
                         }
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
@@ -170,9 +236,13 @@ struct TrendingProgramCard: View {
         .sheet(isPresented: $showingDetail) {
             NavigationView {
                 ProgramDetailView(program: program, university: university ?? MockDataService.shared.mockUniversities.first!)
-                    .navigationBarItems(trailing: Button("Zamknij") {
-                        showingDetail = false
-                    })
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Zamknij") {
+                                showingDetail = false
+                            }
+                        }
+                    }
             }
         }
     }
@@ -195,12 +265,68 @@ struct TrendingProgramCard: View {
             return .green // Good chances (>70% admission chance)
         }
     }
+    
+    private func getProgressColor() -> Color {
+        if let progress = userProgress {
+            if progress >= 1.0 {
+                return .green
+            } else if progress >= 0.8 {
+                return .yellow
+            } else {
+                return .red
+            }
+        }
+        // Gray color if no user data entered
+        return .gray
+    }
 }
 
 struct RecommendedProgramCard: View {
     let program: StudyProgram
     let university: University?
     @State private var showingDetail = false
+    @StateObject private var firebaseService = FirebaseService.shared
+    
+    private var isSaved: Bool {
+        firebaseService.currentUser?.savedPrograms.contains(program.id) ?? false
+    }
+    
+    // Calculate user's progress based on their matura scores
+    private var userProgress: Double? {
+        guard let threshold = program.lastYearThreshold,
+              let user = firebaseService.currentUser,
+              let maturaScores = user.maturaScores,
+              hasEnteredScores(maturaScores) else {
+            return nil
+        }
+        
+        // Simple calculation - in real app this would use program's formula
+        let userPoints = calculateUserPoints(maturaScores: maturaScores)
+        return userPoints / threshold
+    }
+    
+    private func hasEnteredScores(_ maturaScores: MaturaScores) -> Bool {
+        // Check if user has entered any matura scores
+        return maturaScores.polishBasic != nil ||
+               maturaScores.mathematicsBasic != nil ||
+               maturaScores.polish != nil ||
+               maturaScores.mathematics != nil ||
+               maturaScores.foreignLanguageBasic != nil ||
+               maturaScores.foreignLanguage != nil ||
+               maturaScores.physics != nil ||
+               maturaScores.computerScience != nil ||
+               maturaScores.chemistry != nil ||
+               maturaScores.biology != nil
+    }
+    
+    private func calculateUserPoints(maturaScores: MaturaScores) -> Double {
+        // Simplified calculation - in real app would use program-specific formula
+        var total = 0.0
+        if let math = maturaScores.mathematics { total += Double(math) }
+        if let polish = maturaScores.polish { total += Double(polish) }
+        if let foreign = maturaScores.foreignLanguage { total += Double(foreign) }
+        return total / 3.0 // Average for simplicity
+    }
     
     var body: some View {
         Button(action: {
@@ -239,9 +365,27 @@ struct RecommendedProgramCard: View {
                         }
                         
                         if let threshold = program.lastYearThreshold {
-                            Label("\(Int(threshold)) pkt", systemImage: "chart.line.uptrend.xyaxis")
-                                .font(.caption)
-                                .foregroundColor(.blue)
+                            HStack(spacing: 4) {
+                                Circle()
+                                    .fill(getProgressColor())
+                                    .frame(width: 6, height: 6)
+                                
+                                // Show +X% if user is above threshold
+                                if let progress = userProgress, progress > 1.0 {
+                                    Text("+\(Int((progress - 1.0) * 100))%")
+                                        .font(.caption)
+                                        .foregroundColor(.green)
+                                } else if userProgress == nil {
+                                    // User hasn't entered matura scores
+                                    Text("Wprowadź maturę")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                } else {
+                                    Text("\(Int(threshold)) pkt")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
                         } else {
                             Label("Brak danych", systemImage: "questionmark.circle")
                                 .font(.caption)
@@ -251,6 +395,13 @@ struct RecommendedProgramCard: View {
                 }
                 
                 Spacer()
+                
+                if isSaved {
+                    Image(systemName: "bookmark.fill")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                        .padding(.trailing, 4)
+                }
                 
                 Image(systemName: "chevron.right")
                     .font(.caption)
@@ -265,11 +416,29 @@ struct RecommendedProgramCard: View {
         .sheet(isPresented: $showingDetail) {
             NavigationView {
                 ProgramDetailView(program: program, university: university ?? MockDataService.shared.mockUniversities.first!)
-                    .navigationBarItems(trailing: Button("Zamknij") {
-                        showingDetail = false
-                    })
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Zamknij") {
+                                showingDetail = false
+                            }
+                        }
+                    }
             }
         }
+    }
+    
+    private func getProgressColor() -> Color {
+        if let progress = userProgress {
+            if progress >= 1.0 {
+                return .green
+            } else if progress >= 0.8 {
+                return .yellow
+            } else {
+                return .red
+            }
+        }
+        // Gray color if no user data entered
+        return .gray
     }
 }
 
@@ -460,9 +629,13 @@ struct MinimalistUniversityCardWithSheet: View {
         .sheet(isPresented: $showingDetail) {
             NavigationView {
                 UniversityDetailView(university: university)
-                    .navigationBarItems(trailing: Button("Zamknij") {
-                        showingDetail = false
-                    })
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Zamknij") {
+                                showingDetail = false
+                            }
+                        }
+                    }
             }
         }
     }
