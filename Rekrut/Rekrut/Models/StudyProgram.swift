@@ -1,0 +1,48 @@
+//
+//  StudyProgram.swift
+//  Rekrut
+//
+//  Created by Jakub Dudek on 28/05/2025.
+//
+
+import Foundation
+
+struct StudyProgram: Codable, Identifiable {
+    let id: String
+    var universityId: String
+    var name: String
+    var faculty: String? // Wydział (e.g., "Wydział Matematyki i Informatyki")
+    var field: String
+    var degree: Degree
+    var mode: StudyMode
+    var duration: Int // in semesters
+    var language: String
+    var description: String?
+    var requirements: AdmissionRequirements
+    var tuitionFee: Int? // per semester in PLN
+    var availableSlots: Int?
+    var lastYearThreshold: Double? // minimum points from last year
+    var tags: [String]
+    var imageURL: String? // Program or university image
+    var thumbnailURL: String? // Smaller version for cards
+    
+    var durationSemesters: Int {
+        duration
+    }
+}
+
+enum Degree: String, Codable, CaseIterable {
+    case bachelor = "Licencjat"
+    case engineer = "Inżynier"
+    case master = "Magister"
+    case unified = "Jednolite magisterskie"
+}
+
+struct AdmissionRequirements: Codable {
+    var description: String? // Polish description of admission criteria
+    var formula: String // calculation formula description
+    var minimumPoints: Double?
+    var additionalExams: [String]
+    var documents: [String]
+    var deadlineDate: Date?
+}
