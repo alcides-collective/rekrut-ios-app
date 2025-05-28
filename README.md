@@ -38,14 +38,16 @@ iOS application for university applicants and students in Poland. Designed speci
 - Results saved to user profile for future reference
 
 #### 📊 Kalkulator (Calculator)
-- **Ultra-compact design** using 60% less vertical space
-- Support for new Polish Matura exam system
-- Optional extended level (rozszerzony) in collapsible section
-- Smart subject selection for additional subjects
-- Real-time validation with warning indicators
-- Automatic calculation of recruitment points
-- Pass/fail indicators for each subject (30% threshold)
-- Clean, table-based interface for quick data entry
+- **Interactive visual design** with color-coded progress bars (December 2024)
+- Text input fields for precise score entry
+- All subjects visible without dropdowns or collapsible sections
+- Visual feedback: red (fail), yellow (medium), green (good)
+- Split text rendering: black on white, white on color
+- Colorful emoji on white background, monochrome on colored
+- Support for all mandatory and optional Matura subjects
+- Inspirational quotes for each subject
+- Real-time point calculation
+- Performance optimized without live program matching
 
 #### 📋 Porównanie (Comparison)
 - Side-by-side comparison of up to 3 study programs
@@ -92,13 +94,14 @@ The score considers multiple factors including historical thresholds, competitio
 - **Porównanie**: Compare up to 3 programs side-by-side with visual indicators for better decision making
 - **Profil**: Manage your account, view saved programs, and track your application journey
 
-### 🌟 Recent Updates
-- **Removed**: Employment rate data (focus shifted to academic aspects)
-- **Removed**: Required subjects display (simplified admission info)
-- **Updated**: Study duration now shows semesters instead of years
-- **New**: Erasmus+ program integration (coming soon)
-- **New**: Ultra-compact calculator design with collapsible sections
+### 🌟 Recent Updates (December 2024)
+- **New**: Interactive Matura calculator with visual progress bars
+- **New**: Sheet-based navigation for all detail views
+- **Updated**: Text input fields replace picker wheels in calculator
+- **Updated**: Performance optimizations throughout the app
+- **Removed**: Live program matching from calculator (performance)
 - **New**: Smart search with recent searches and suggestions
+- **New**: Erasmus+ program integration (coming soon)
 
 ## Setup and Run
 

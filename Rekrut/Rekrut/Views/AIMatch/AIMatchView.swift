@@ -254,8 +254,6 @@ struct AIMatchQuestionnaireView: View {
     let totalSteps = 11 // Updated: 4 regular steps + 6 skill steps + 1 open question
     
     private func triggerHapticFeedback() {
-        let intensity = min(Double(currentStep + 1) / Double(totalSteps), 1.0)
-        
         if currentStep < 4 {
             // Light feedback for early questions
             let impact = UIImpactFeedbackGenerator(style: .light)

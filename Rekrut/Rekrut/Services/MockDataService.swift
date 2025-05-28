@@ -135,7 +135,8 @@ class MockDataService {
             lastYearThreshold: 85.5,
             tags: ["AI", "Machine Learning", "Algorytmy"],
             imageURL: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=800",
-            thumbnailURL: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400"
+            thumbnailURL: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400",
+            applicationURL: "https://irk.uw.edu.pl/kierunki/informatyka"
         ),
         StudyProgram(
             id: "uw-prawo",
@@ -159,7 +160,8 @@ class MockDataService {
             tuitionFee: 0,
             availableSlots: 300,
             lastYearThreshold: 78.2,
-            tags: ["Prawo karne", "Prawo cywilne", "Administracja"]
+            tags: ["Prawo karne", "Prawo cywilne", "Administracja"],
+            applicationURL: "https://irk.uw.edu.pl/kierunki/prawo"
         ),
         // PW Programs
         StudyProgram(
@@ -183,7 +185,8 @@ class MockDataService {
             tuitionFee: 0,
             availableSlots: 250,
             lastYearThreshold: 88.3,
-            tags: ["Cyberbezpieczeństwo", "IoT", "Systemy wbudowane"]
+            tags: ["Cyberbezpieczeństwo", "IoT", "Systemy wbudowane"],
+            applicationURL: "https://rekrutacja.pw.edu.pl/kierunki/informatyka"
         ),
         // UJ Programs
         StudyProgram(

@@ -25,6 +25,7 @@ struct StudyProgram: Codable, Identifiable {
     var tags: [String]
     var imageURL: String? // Program or university image
     var thumbnailURL: String? // Smaller version for cards
+    var applicationURL: String? // Direct link to apply for this program
     
     var durationSemesters: Int {
         duration

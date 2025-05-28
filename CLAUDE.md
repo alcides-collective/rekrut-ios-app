@@ -87,8 +87,9 @@ Rekrut/
 │   │   ├── LoginView.swift
 │   │   └── SignUpView.swift
 │   ├── Calculator/
-│   │   ├── CompactMaturaCalculatorView.swift  # NEW: Ultra-compact design
-│   │   └── SimpleMaturaCalculatorView.swift   # Previous version
+│   │   ├── InteractiveMaturaView.swift        # NEW: Visual progress bars
+│   │   ├── CompactMaturaCalculatorView.swift  # Previous compact design
+│   │   └── SimpleMaturaCalculatorView.swift   # Original version
 │   ├── Comparison/
 │   │   └── ComparisonView.swift
 │   ├── Explore/
@@ -115,12 +116,14 @@ Rekrut/
 
 ## Recent Changes & Patterns
 
-### Compact Matura Calculator (NEW)
-- Collapsible extended level section marked "(opcjonalnie)"
-- Horizontal scroll for score inputs
-- Smart subject selection chips for additional subjects
-- Warning indicators for failing scores (<30%)
-- 60% less vertical space usage
+### Interactive Matura Calculator (NEW - December 2024)
+- Complete redesign with visual progress bars
+- Text input fields for easy score entry (replaced picker wheels)
+- Split color rendering: black text on white, white text on color
+- Colorful emoji on white background, monochrome on colored
+- All subjects visible without dropdowns or expandable sections
+- Performance optimized by removing live program matching
+- RoundedRectangle shapes for proper corner rendering at 100%
 
 ### Smart Search System (NEW)
 - No filtering UI - intelligent search across all fields
@@ -139,6 +142,8 @@ Rekrut/
 - 5 tabs: Explore, Search, Calculator, Compare, AI Match
 - Profile accessible via navigation bar button (iOS pattern)
 - NavigationViewWithProfile wrapper for consistent header
+- Sheet presentations for all detail views (not push navigation)
+- "Zamknij" buttons on all sheets for consistency
 
 ## Common Tasks
 

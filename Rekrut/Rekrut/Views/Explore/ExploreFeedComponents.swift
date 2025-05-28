@@ -31,6 +31,7 @@ struct TrendingProgramCard: View {
     let program: StudyProgram
     let university: University?
     @State private var imageLoadFailed = false
+    @State private var showingDetail = false
     
     private var backgroundGradient: LinearGradient {
         let colors: [Color] = [.blue, .purple, .green, .orange, .pink].shuffled()
@@ -42,7 +43,9 @@ struct TrendingProgramCard: View {
     }
     
     var body: some View {
-        NavigationLink(destination: ProgramDetailView(program: program, university: university ?? MockDataService.shared.mockUniversities.first!)) {
+        Button(action: {
+            showingDetail = true
+        }) {
             ZStack(alignment: .bottomLeading) {
                 // Background - either image or gradient
                 if let imageURL = program.thumbnailURL ?? program.imageURL,
@@ -164,6 +167,14 @@ struct TrendingProgramCard: View {
             )
         }
         .buttonStyle(PlainButtonStyle())
+        .sheet(isPresented: $showingDetail) {
+            NavigationView {
+                ProgramDetailView(program: program, university: university ?? MockDataService.shared.mockUniversities.first!)
+                    .navigationBarItems(trailing: Button("Zamknij") {
+                        showingDetail = false
+                    })
+            }
+        }
     }
     
     private func getIconForField(_ field: String) -> String {
@@ -189,9 +200,12 @@ struct TrendingProgramCard: View {
 struct RecommendedProgramCard: View {
     let program: StudyProgram
     let university: University?
+    @State private var showingDetail = false
     
     var body: some View {
-        NavigationLink(destination: ProgramDetailView(program: program, university: university ?? MockDataService.shared.mockUniversities.first!)) {
+        Button(action: {
+            showingDetail = true
+        }) {
             HStack(spacing: 16) {
                 // Icon
                 ZStack {
@@ -248,73 +262,100 @@ struct RecommendedProgramCard: View {
             .shadow(color: .black.opacity(0.05), radius: 10)
         }
         .buttonStyle(PlainButtonStyle())
-    }
-}
-
-struct CategoryGridView: View {
-    let categories = [
-        ("Informatyka i IT", "laptopcomputer", Color.blue),
-        ("Medycyna i Zdrowie", "cross.case.fill", Color.red),
-        ("Biznes i Ekonomia", "chart.line.uptrend.xyaxis", Color.green),
-        ("Prawo i Administracja", "scale.3d", Color.orange),
-        ("Inżynieria i Technika", "gearshape.fill", Color.purple),
-        ("Humanistyka i Języki", "book.fill", Color.pink),
-        ("Sztuka i Design", "paintbrush.fill", Color.indigo),
-        ("Sport i Turystyka", "figure.run", Color.mint),
-        ("Nauki społeczne", "person.3.fill", Color.teal),
-        ("Rolnictwo i Środowisko", "leaf.fill", Color(red: 0.2, green: 0.6, blue: 0.2))
-    ]
-    
-    let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible())
-    ]
-    
-    var body: some View {
-        LazyVGrid(columns: columns, spacing: 12) {
-            ForEach(categories, id: \.0) { category in
-                NavigationLink(destination: CategoryProgramsView(
-                    categoryName: category.0,
-                    categoryIcon: category.1,
-                    categoryColor: category.2
-                )) {
-                    CategoryCard(
-                        title: category.0,
-                        icon: category.1,
-                        color: category.2
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
+        .sheet(isPresented: $showingDetail) {
+            NavigationView {
+                ProgramDetailView(program: program, university: university ?? MockDataService.shared.mockUniversities.first!)
+                    .navigationBarItems(trailing: Button("Zamknij") {
+                        showingDetail = false
+                    })
             }
         }
     }
 }
 
-struct CategoryCard: View {
+struct CategoryGridView: View {
+    let categories = [
+        ("Informatyka i IT", "laptopcomputer", Color.blue, 234),
+        ("Medycyna i Zdrowie", "cross.case.fill", Color.red, 156),
+        ("Biznes i Ekonomia", "chart.line.uptrend.xyaxis", Color.green, 189),
+        ("Prawo i Administracja", "scale.3d", Color.orange, 98),
+        ("Inżynieria i Technika", "gearshape.fill", Color.purple, 267),
+        ("Humanistyka i Języki", "book.fill", Color.pink, 145),
+        ("Sztuka i Design", "paintbrush.fill", Color.indigo, 87),
+        ("Sport i Turystyka", "figure.run", Color.mint, 56),
+        ("Nauki społeczne", "person.3.fill", Color.teal, 123),
+        ("Rolnictwo i Środowisko", "leaf.fill", Color(red: 0.2, green: 0.6, blue: 0.2), 45)
+    ]
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(categories.enumerated()), id: \.element.0) { index, category in
+                NavigationLink(destination: CategoryProgramsView(
+                    categoryName: category.0,
+                    categoryIcon: category.1,
+                    categoryColor: category.2
+                )) {
+                    CategoryListRow(
+                        title: category.0,
+                        icon: category.1,
+                        color: category.2,
+                        programCount: category.3
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                if index < categories.count - 1 {
+                    Divider()
+                        .padding(.leading, 72)
+                }
+            }
+        }
+        .background(Color.white)
+        .cornerRadius(12)
+    }
+}
+
+struct CategoryListRow: View {
     let title: String
     let icon: String
     let color: Color
+    let programCount: Int
     
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(.white)
-                .frame(width: 40, height: 40)
-                .background(color)
-                .cornerRadius(12)
+        HStack(spacing: 16) {
+            // Icon with colored background
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(color.opacity(0.15))
+                    .frame(width: 48, height: 48)
+                
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundColor(color)
+            }
             
-            Text(title)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.primary)
-                .lineLimit(2)
+            // Title and subtitle
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                
+                Text("\(programCount) kierunków")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
             
             Spacer()
+            
+            // Chevron
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(16)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
     }
 }
 
@@ -401,6 +442,28 @@ struct UniversityCompactCard: View {
                         .font(.headline)
                         .foregroundColor(.gray)
                 )
+        }
+    }
+}
+
+struct MinimalistUniversityCardWithSheet: View {
+    let university: University
+    @State private var showingDetail = false
+    
+    var body: some View {
+        Button(action: {
+            showingDetail = true
+        }) {
+            MinimalistUniversityCard(university: university)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .sheet(isPresented: $showingDetail) {
+            NavigationView {
+                UniversityDetailView(university: university)
+                    .navigationBarItems(trailing: Button("Zamknij") {
+                        showingDetail = false
+                    })
+            }
         }
     }
 }

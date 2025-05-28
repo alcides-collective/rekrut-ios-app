@@ -39,8 +39,22 @@ struct ProgramDetailView: View {
     @StateObject private var firebaseService = FirebaseService.shared
     @State private var isSaved = false
     
+    init(program: StudyProgram, university: University) {
+        self.program = program
+        self.university = university
+        
+        // Configure navigation bar appearance
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithDefaultBackground()
+        appearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
+        
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+    }
+    
     var body: some View {
-        ScrollView {
+        ScrollView(.vertical, showsIndicators: true) {
             VStack(alignment: .leading, spacing: 0) {
                 // Hero Image
                 ProgramHeroView(
@@ -49,10 +63,24 @@ struct ProgramDetailView: View {
                     isSaved: isSaved, 
                     toggleSave: toggleSave
                 )
+                .overlay(
+                    // Essential Info Pills overlaid at bottom
+                    VStack {
+                        Spacer()
+                        ProgramEssentialsView(program: program)
+                            .padding(.bottom, 30)
+                    }
+                )
                 
                 VStack(alignment: .leading, spacing: 32) {
-                    // Essential Info Pills
-                    ProgramEssentialsView(program: program)
+                    // Admission Progress (moved from ProgramEssentialsView)
+                    VStack(spacing: 20) {
+                        if let threshold = program.lastYearThreshold {
+                            AdmissionProgressView(threshold: threshold, applicationURL: program.applicationURL)
+                        } else {
+                            NoThresholdInfoView(applicationURL: program.applicationURL)
+                        }
+                    }
                     
                     // Description
                     if let description = program.description {
@@ -71,10 +99,15 @@ struct ProgramDetailView: View {
                 .padding(.bottom, 40)
             }
         }
-        .ignoresSafeArea(.all, edges: .top)
-        .navigationTitle("")
+        .edgesIgnoringSafeArea(.top)
+        .navigationTitle(program.name)
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarHidden(true)
+        .navigationBarItems(
+            leading: Button(action: toggleSave) {
+                Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
+                    .foregroundColor(.blue)
+            }
+        )
         .onAppear {
             checkIfSaved()
         }
@@ -167,57 +200,62 @@ struct ProgramHeroView: View {
                         .frame(width: geometry.size.width, height: geometry.size.height)
                 }
                 
-                // Navigation overlay
+                // Content overlay
                 VStack {
-                    HStack {
-                        Button(action: { dismiss() }) {
-                            Image(systemName: "chevron.left")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                                .frame(width: 40, height: 40)
-                                .background(Color.black.opacity(0.3))
-                                .clipShape(Circle())
-                        }
-                        
-                        Spacer()
-                        
-                        Button(action: toggleSave) {
-                            Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                                .frame(width: 40, height: 40)
-                                .background(Color.black.opacity(0.3))
-                                .clipShape(Circle())
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 60) // Account for safe area
-                    
                     Spacer()
                     
-                    // Content overlay
                     VStack(alignment: .leading, spacing: 8) {
-                        if let faculty = program.faculty {
-                            Text(faculty)
-                                .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.9))
-                                .lineLimit(1)
-                        }
-                        
                         Text(program.name)
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
                             .lineLimit(2)
                         
-                        Text(university.name)
-                            .font(.title3)
-                            .foregroundColor(.white.opacity(0.9))
+                        Spacer()
+                            .frame(height: 8)
+                        
+                        HStack(spacing: 8) {
+                            if let shortName = university.shortName {
+                                Text(shortName)
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                            }
+                            
+                            if let faculty = program.faculty {
+                                Text("•")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white.opacity(0.7))
+                                
+                                Text(faculty)
+                                    .font(.subheadline)
+                                    .foregroundColor(.white.opacity(0.9))
+                                    .lineLimit(1)
+                            }
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 100) // Increased to make room for essential info
                 }
+            }
+            
+            // Bottom gradient for smooth transition
+            VStack {
+                Spacer()
+                LinearGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: Color.clear, location: 0),
+                        .init(color: Color.white.opacity(0.1), location: 0.2),
+                        .init(color: Color.white.opacity(0.3), location: 0.4),
+                        .init(color: Color.white.opacity(0.6), location: 0.6),
+                        .init(color: Color.white.opacity(0.85), location: 0.8),
+                        .init(color: Color.white, location: 1.0)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 200)
             }
         }
         .frame(height: 400)
@@ -228,52 +266,42 @@ struct ProgramEssentialsView: View {
     let program: StudyProgram
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // Essential Info Grid
-            HStack(spacing: 0) {
-                EssentialInfoCell(
-                    label: "Stopień",
-                    value: program.degree.rawValue
-                )
-                
-                Divider()
-                    .frame(height: 50)
-                
-                EssentialInfoCell(
-                    label: "Tryb",
-                    value: program.mode.rawValue
-                )
-                
-                Divider()
-                    .frame(height: 50)
-                
-                EssentialInfoCell(
-                    label: "Czas trwania",
-                    value: "\(program.durationSemesters) sem."
-                )
-                
-                if let tuition = program.tuitionFee, tuition > 0 {
-                    Divider()
-                        .frame(height: 50)
-                    
-                    EssentialInfoCell(
-                        label: "Czesne",
-                        value: "\(tuition) zł/sem"
-                    )
-                }
-            }
-            .background(Color(.secondarySystemBackground))
-            .cornerRadius(12)
-            .padding(.horizontal, 24)
+        // Essential Info Grid only
+        HStack(spacing: 0) {
+            EssentialInfoCell(
+                label: "Stopień",
+                value: program.degree.rawValue
+            )
             
-            // Admission Progress (if threshold available)
-            if let threshold = program.lastYearThreshold {
-                AdmissionProgressView(threshold: threshold)
-            } else {
-                // Fallback when no threshold data is available
-                NoThresholdInfoView()
+            Divider()
+                .frame(height: 50)
+            
+            EssentialInfoCell(
+                label: "Tryb",
+                value: program.mode.rawValue
+            )
+            
+            Divider()
+                .frame(height: 50)
+            
+            EssentialInfoCell(
+                label: "Czas trwania",
+                value: "\(program.durationSemesters) sem."
+            )
+            
+            if let tuition = program.tuitionFee, tuition > 0 {
+                Divider()
+                    .frame(height: 50)
+                
+                EssentialInfoCell(
+                    label: "Czesne",
+                    value: "\(tuition) zł/sem"
+                )
             }
         }
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(12)
+        .padding(.horizontal, 24)
     }
 }
 
@@ -301,6 +329,7 @@ struct EssentialInfoCell: View {
 
 struct AdmissionProgressView: View {
     let threshold: Double
+    let applicationURL: String?
     @State private var userPoints: Double = 0 // This would come from user's profile/calculation
     
     private var progress: Double {
@@ -320,19 +349,40 @@ struct AdmissionProgressView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Twoje szanse")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Twoje szanse")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    HStack(spacing: 8) {
+                        Text("\(Int(userPoints))")
+                            .font(.system(.title2, design: .rounded))
+                            .fontWeight(.semibold)
+                            .foregroundColor(progressColor)
+                        + Text(" / \(Int(threshold)) pkt")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
                 
                 Spacer()
                 
-                Text("\(Int(userPoints))")
-                    .font(.system(.title2, design: .rounded))
-                    .fontWeight(.semibold)
-                    .foregroundColor(progressColor)
-                + Text(" / \(Int(threshold)) pkt")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                if let url = applicationURL, let applicationURL = URL(string: url) {
+                    Link(destination: applicationURL) {
+                        HStack(spacing: 6) {
+                            Text("Aplikuj teraz")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Image(systemName: "arrow.right.circle.fill")
+                                .font(.subheadline)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color.blue)
+                        .cornerRadius(20)
+                    }
+                }
             }
             .padding(.horizontal, 24)
             .padding(.top, 16)
@@ -544,20 +594,41 @@ struct ProgramTagsView: View {
 }
 
 struct NoThresholdInfoView: View {
+    let applicationURL: String?
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Info header
             HStack {
-                Image(systemName: "info.circle")
-                    .font(.subheadline)
-                    .foregroundColor(.orange)
-                
-                Text("Brak danych o progu punktowym")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.primary)
+                HStack(spacing: 8) {
+                    Image(systemName: "info.circle")
+                        .font(.subheadline)
+                        .foregroundColor(.orange)
+                    
+                    Text("Brak danych o progu punktowym")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                }
                 
                 Spacer()
+                
+                if let url = applicationURL, let applicationURL = URL(string: url) {
+                    Link(destination: applicationURL) {
+                        HStack(spacing: 6) {
+                            Text("Aplikuj teraz")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Image(systemName: "arrow.right.circle.fill")
+                                .font(.subheadline)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color.blue)
+                        .cornerRadius(20)
+                    }
+                }
             }
             
             // Explanation

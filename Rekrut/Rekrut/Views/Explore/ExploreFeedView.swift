@@ -50,8 +50,10 @@ struct ExploreFeedView: View {
                 ExploreSectionHeader(
                     title: "Trending",
                     icon: "flame.fill",
-                    actionText: nil,
-                    action: { }
+                    actionText: "Zobacz więcej",
+                    action: { 
+                        // TODO: Navigate to full trending list
+                    }
                 )
                 
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -88,8 +90,10 @@ struct ExploreFeedView: View {
                 ExploreSectionHeader(
                     title: "Dla Ciebie",
                     icon: "person.fill",
-                    actionText: nil,
-                    action: { }
+                    actionText: "Zobacz więcej",
+                    action: { 
+                        // TODO: Navigate to full personalized list
+                    }
                 )
                 
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -116,8 +120,10 @@ struct ExploreFeedView: View {
                 ExploreSectionHeader(
                     title: "Rekomendowane dla Ciebie",
                     icon: "sparkles",
-                    actionText: nil,
-                    action: { }
+                    actionText: "Zobacz więcej",
+                    action: { 
+                        // TODO: Navigate to full recommendations
+                    }
                 )
                 
                 VStack(spacing: 16) {
@@ -139,8 +145,10 @@ struct ExploreFeedView: View {
             ExploreSectionHeader(
                 title: "Przeglądaj kategorie",
                 icon: "square.grid.2x2.fill",
-                actionText: nil,
-                action: { }
+                actionText: "Zobacz wszystkie",
+                action: { 
+                    // TODO: Navigate to full categories list
+                }
             )
             
             CategoryGridView()
@@ -154,17 +162,16 @@ struct ExploreFeedView: View {
             ExploreSectionHeader(
                 title: "Top uczelnie",
                 icon: "building.columns.fill",
-                actionText: nil,
-                action: { }
+                actionText: "Zobacz ranking",
+                action: { 
+                    // TODO: Navigate to full university ranking
+                }
             )
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(universities.filter { $0.ranking != nil }.sorted { ($0.ranking ?? 0) < ($1.ranking ?? 0) }.prefix(5)) { university in
-                        NavigationLink(destination: UniversityDetailView(university: university)) {
-                            MinimalistUniversityCard(university: university)
-                        }
-                        .buttonStyle(PlainButtonStyle())
+                        MinimalistUniversityCardWithSheet(university: university)
                     }
                 }
                 .padding(.horizontal)
@@ -179,8 +186,10 @@ struct ExploreFeedView: View {
             ExploreSectionHeader(
                 title: "Miasta",
                 icon: "mappin.circle.fill",
-                actionText: nil,
-                action: { }
+                actionText: "Zobacz wszystkie",
+                action: { 
+                    // TODO: Navigate to all cities view
+                }
             )
             
             ScrollView(.horizontal, showsIndicators: false) {
@@ -216,9 +225,9 @@ struct ExploreFeedView: View {
                 
                 recommendedSection
                 
-                categoriesSection
-                
                 citiesSection
+                
+                categoriesSection
                 
                 .padding(.bottom, 24)
             }
@@ -274,7 +283,8 @@ struct ExploreFeedView: View {
                 lastYearThreshold: 89.5,
                 tags: ["AI", "Neurobiologia", "Psychologia kognitywna"],
                 imageURL: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800",
-                thumbnailURL: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400"
+                thumbnailURL: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400",
+                applicationURL: "https://irk.uw.edu.pl/kierunki/cognitive-science"
             ),
             StudyProgram(
                 id: "pw-cybersecurity",

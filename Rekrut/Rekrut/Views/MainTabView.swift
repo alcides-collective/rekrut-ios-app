@@ -39,7 +39,7 @@ struct MainTabView: View {
             .tag(2)
             
             NavigationViewWithProfile(showingProfile: $showingProfile) {
-                SimplestMaturaCalculatorView()
+                InteractiveMaturaView()
             }
             .tabItem {
                 Label("Matury", systemImage: "graduationcap")

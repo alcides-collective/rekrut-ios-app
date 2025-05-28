@@ -187,19 +187,42 @@ enum SearchResult: Identifiable {
 
 struct SearchResultRow: View {
     let result: SearchResult
+    @State private var showingDetail = false
     
     var body: some View {
         switch result {
         case .university(let university):
-            NavigationLink(destination: UniversityDetailView(university: university)) {
+            Button(action: {
+                showingDetail = true
+            }) {
                 UniversitySearchRow(university: university)
             }
+            .buttonStyle(PlainButtonStyle())
+            .sheet(isPresented: $showingDetail) {
+                NavigationView {
+                    UniversityDetailView(university: university)
+                        .navigationBarItems(trailing: Button("Zamknij") {
+                            showingDetail = false
+                        })
+                }
+            }
         case .program(let program):
-            NavigationLink(destination: ProgramDetailView(
-                program: program,
-                university: MockDataService.shared.mockUniversities.first { $0.id == program.universityId }!
-            )) {
+            Button(action: {
+                showingDetail = true
+            }) {
                 ProgramSearchRow(program: program)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .sheet(isPresented: $showingDetail) {
+                NavigationView {
+                    ProgramDetailView(
+                        program: program,
+                        university: MockDataService.shared.mockUniversities.first { $0.id == program.universityId }!
+                    )
+                    .navigationBarItems(trailing: Button("Zamknij") {
+                        showingDetail = false
+                    })
+                }
             }
         }
     }

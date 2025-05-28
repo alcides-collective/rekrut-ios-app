@@ -225,9 +225,12 @@ struct AIMatchProgramCard: View {
     let rank: Int
     let reasons: [String]
     @State private var imageLoadFailed = false
+    @State private var showingDetail = false
     
     var body: some View {
-        NavigationLink(destination: ProgramDetailView(program: program, university: university)) {
+        Button(action: {
+            showingDetail = true
+        }) {
             VStack(spacing: 0) {
                 // Image with gradient overlay
                 ZStack(alignment: .bottomLeading) {
@@ -383,6 +386,14 @@ struct AIMatchProgramCard: View {
             .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
         }
         .buttonStyle(PlainButtonStyle())
+        .sheet(isPresented: $showingDetail) {
+            NavigationView {
+                ProgramDetailView(program: program, university: university)
+                    .navigationBarItems(trailing: Button("Zamknij") {
+                        showingDetail = false
+                    })
+            }
+        }
     }
     
     private var rankColor: Color {
