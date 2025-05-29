@@ -1,191 +1,180 @@
-# Rekrut - Development Todo List
+# Rekrut Development Roadmap
 
-## Project Focus
-Polish university admission app with proprietary Rekrut Score™ system for standardized admission chance comparison.
+## 🎯 Project Vision
+Build the most intuitive and helpful iOS app for Polish university applicants, making the admission process transparent and stress-free.
 
-## Phase 1: Project Setup and Foundation ✅
-- [x] Initialize Xcode project with SwiftUI
-- [x] Configure project settings for iOS 15.0+ deployment target
-- [x] Set up Git repository and .gitignore for Swift/Xcode
-- [x] Integrate Firebase SDK using Swift Package Manager
-- [x] Configure Firebase project and add GoogleService-Info.plist
-- [x] Set up basic project folder structure (Models, Views, ViewModels, Services)
-- [x] Create app icon and launch screen
-- [x] Implement basic navigation structure (TabView)
+## 📊 Development Phases
 
-## Phase 2: Firebase Setup and Data Models ✅
-- [x] Design Firebase Realtime Database schema
-- [x] Create data models for:
-  - [x] User profile
-  - [x] University
-  - [x] Study program
-  - [x] Matura exam subjects and scores
-  - [x] Erasmus+ programs
-  - [x] Comparison model
-- [x] Implement FirebaseService class for database operations
-- [ ] Set up Firebase security rules
-- [ ] Create mock data for testing
+### Phase 1: Foundation ✅
+- [x] Project setup with Xcode and SwiftUI
+- [x] Firebase integration (Auth, Firestore)
+- [x] Basic MVVM architecture
+- [x] Tab navigation structure
+- [x] Polish language UI
 
-## Phase 3: Core UI Implementation ✅
-- [x] Design and implement main tab bar with icons
-- [x] Create basic views for each main section:
-  - [x] Explore/Home view
-  - [x] Calculator view
-  - [x] Comparison view
-  - [x] Profile view
-- [x] Implement consistent color scheme and typography
-- [x] Add SF Symbols throughout the app
-- [x] Ensure dark mode support
+### Phase 2: Core Features ✅
+- [x] Apple Sign In authentication
+- [x] User profile management
+- [x] University and program data models
+- [x] Mock data service for development
+- [x] Basic UI components
 
-## Phase 4: Matura Calculator Feature ✅
-- [x] Interactive visual design with progress bars (December 2024)
-- [x] Text input fields for precise score entry
-- [x] Color-coded feedback (red/yellow/green)
-- [x] Split text rendering (black on white, white on color)
-- [x] All subjects visible without dropdowns
-- [x] Support for all mandatory and optional subjects
-- [x] Inspirational quotes for each subject
-- [x] Performance optimized (removed live matching)
+### Phase 3: Matura Calculator ✅
+- [x] Interactive calculator with visual progress bars
+- [x] Dynamic point calculation using university formulas
+- [x] FormulaCalculator service implementation
+- [x] Real-time admission chance indicators
+- [x] Subject-specific scoring (basic/extended levels)
 
-## Phase 5: University and Program Database ✅
-- [x] Comprehensive program database with Rekrut Score
-- [x] Smart search across all fields
-- [x] Dropdown filters (study mode, city, degree)
-- [x] Mixed search results (programs + universities)
+### Phase 4: AI Match System ✅
+- [x] 6-step questionnaire design
+- [x] Grid-based answer layout
+- [x] City selection for "Blisko domu" option
+- [x] Personalized program recommendations
+- [x] Results page with matched programs
+
+### Phase 5: Search & Discovery ✅
+- [x] Smart search across programs/universities
 - [x] Recent searches persistence
-- [x] Detailed university/program views (January 2025)
-- [x] Bookmark/favorite functionality (January 2025)
+- [x] Explore feed with trending programs
+- [x] University rankings display
+- [x] Category-based browsing
 
-## Phase 6: AI Recommendation System ✅
-- [x] 5-step preference questionnaire
-- [x] Personality and skills assessment
-- [x] Match percentage calculation
-- [x] Personalized recommendations in Explore
-- [x] Results saved to user profile
-- [x] Visual progress indicators
-- [ ] Feedback mechanism for improvements
-- [ ] Detailed match explanations
+### Phase 6: User Features ✅
+- [x] Bookmark/favorite programs
+- [x] Saved programs view in profile
+- [x] Program detail pages
+- [x] University detail pages
+- [x] Sheet-based navigation
 
-## Phase 7: Explore Feed ✅
-- [x] Trending programs with Rekrut Score
-- [x] AI recommendations section
-- [x] Category browsing cards
-- [x] Top universities section
-- [x] Compact dropdown filters
-- [x] Smooth loading states
-- [x] Visual program cards
-- [ ] Pull-to-refresh
-- [ ] Like/dislike gestures
+### Phase 7: Erasmus+ Integration 🚧
+- [x] Erasmus program data model
+- [x] Browse exchange opportunities
+- [ ] Filter by country/duration
+- [ ] Language requirements display
+- [ ] Application deadline tracking
 
-## Phase 8: Study Path Comparison ✅
-- [x] Side-by-side comparison (up to 3 programs)
-- [x] Visual indicators for better/worse values
-- [x] Rekrut Score comparison
-- [x] Key metrics display
-- [x] Program selection interface
-- [ ] Save comparison feature
-- [ ] Share functionality
-- [ ] AI-generated insights
+### Phase 8: Program Comparison 🚧
+- [x] Comparison data model
+- [x] Basic comparison view
+- [ ] Side-by-side program comparison
+- [ ] Detailed requirements comparison
+- [ ] Export comparison results
 
-## Phase 9: Erasmus+ Integration 🚧
-- [x] Data model created (ErasmusProgram)
-- [ ] Dedicated Erasmus+ tab/section
-- [ ] Country and field filtering
-- [ ] Duration-based search
-- [ ] Application deadlines
-- [ ] Partner university details
-- [ ] Saved programs feature
+### Phase 9: Firebase Production 🔄
+- [ ] Security rules implementation
+- [ ] Data migration scripts
+- [ ] Performance optimization
+- [ ] Real-time data sync
+- [ ] Offline support
 
-## Phase 10: User Profile and Settings ✅
-- [x] Implement user registration/login (Firebase Auth)
-- [x] Apple Sign In only authentication (January 2025)
-- [x] Implement authentication state management
-- [x] Create authenticated/unauthenticated profile views
-- [x] BookmarkedProgramsView in Profile section
-- [ ] Create profile editing interface
-- [ ] Add academic history section
-- [ ] Implement preferences management
-- [ ] Create settings screen with app options
-- [ ] Add data export functionality
+### Phase 10: Polish Universities Data 📝
+- [ ] Complete university database
+- [ ] 2024/2025 admission thresholds
+- [ ] Updated admission formulas
+- [ ] Program descriptions in Polish
+- [ ] Contact information
 
-## Phase 11: Polish and Optimization 🚧
-- [x] Loading states for all views
-- [x] Smooth animations (0.3s standard)
-- [x] Optimized Firebase queries
-- [x] Error handling in auth flow
-- [ ] Skeleton screens for lists
-- [ ] Offline functionality
-- [ ] Haptic feedback
-- [ ] Onboarding flow
+### Phase 11: Push Notifications 📱
+- [ ] Application deadline reminders
+- [ ] Personalized program suggestions
+- [ ] Admission result notifications
+- [ ] University news updates
+- [ ] Firebase Cloud Messaging setup
 
-## Phase 12: Testing
-- [ ] Write unit tests for calculation logic
-- [ ] Test AI recommendation algorithms
-- [ ] Implement UI tests for critical user flows
-- [ ] Perform device testing on various iPhone models
-- [ ] Test Firebase security rules
-- [ ] Conduct user acceptance testing
+### Phase 12: Analytics & Insights 📈
+- [ ] User behavior tracking
+- [ ] Popular programs analytics
+- [ ] Search trends dashboard
+- [ ] Conversion funnel analysis
+- [ ] Firebase Analytics integration
 
-## Phase 13: Polish Language & Accessibility 🚧
-- [x] Full Polish UI implementation
-- [x] Proper Polish terminology throughout
-- [ ] VoiceOver compatibility
-- [ ] Dynamic Type support
-- [ ] Accessibility labels
-- [ ] High contrast mode
-- Note: English support not planned (Polish-only app)
+### Phase 13: Performance & Polish 🚀
+- [ ] App size optimization
+- [ ] Image compression
+- [ ] Lazy loading implementation
+- [ ] Animation performance
+- [ ] Memory usage optimization
 
-## Phase 14: App Store Preparation
-- [ ] Create app screenshots for different device sizes
-- [ ] Write compelling app description
-- [ ] Prepare promotional text
-- [ ] Create app preview video (optional)
-- [ ] Set up App Store Connect
-- [ ] Implement analytics (Firebase Analytics or similar)
+### Phase 14: Testing & QA 🧪
+- [ ] Unit tests for ViewModels
+- [ ] UI tests for critical flows
+- [ ] Manual testing checklist
+- [ ] Beta testing program
+- [ ] Crash reporting setup
 
-## Phase 15: Launch and Post-Launch
-- [ ] Submit app for App Store review
-- [ ] Prepare marketing materials
-- [ ] Set up user support channels
-- [ ] Plan feature update roadmap
-- [ ] Monitor user feedback and crash reports
-- [ ] Implement continuous improvement based on user data
+### Phase 15: App Store Launch 🎉
+- [ ] App Store screenshots
+- [ ] Marketing description
+- [ ] Privacy policy
+- [ ] Terms of service
+- [ ] App Store submission
 
-## Recent Changes & Decisions
-- ✅ Removed employment rate data (focus on academics)
-- ✅ Removed required subjects lists (simplified to booleans)
-- ✅ Changed duration from years to semesters
-- ✅ Implemented Rekrut Score™ system
-- ✅ Interactive calculator with visual progress bars (December 2024)
-- ✅ Sheet-based navigation for all detail views (January 2025)
-- ✅ Text input fields instead of picker wheels
-- ✅ Smart search replacing complex filters
-- ✅ ProgramDetailView UI improvements (January 2025):
-  - Compact spacing and proper panel styling
-  - Enhanced gradients and visual hierarchy
-  - Simplified Rekrutacja section
-  - Smart progress indicators (+X% above 100%)
-- ✅ Consistent "Zamknij" buttons on all sheet presentations
-- ✅ Dynamic formula-based point calculation system (January 2025):
-  - FormulaCalculator parses university-specific admission formulas
-  - Supports weighted subjects, max functions, and complex formulas
-  - Green dots and +X% indicators on all program cards
-  - Mock user data for testing with high matura scores
-- ✅ Bookmark/favorite functionality (January 2025):
-  - Save programs to profile
-  - BookmarkedProgramsView in Profile section
-  - Bookmark indicators on all program cards
-- ✅ Apple Sign In only authentication (January 2025):
-  - Removed email/password authentication for security
-  - Simplified authentication flow
-  - Direct Sign in with Apple button in Profile
+## 🔮 Future Features (Post-Launch)
 
-## Future Enhancements (Post-Launch)
-- [ ] Push notifications for application deadlines
-- [ ] PDF export of calculations and comparisons
-- [ ] Social features (study groups, forums)
-- [ ] Virtual university tours
+### Version 2.0
+- [ ] iPad support
+- [ ] Widget for admission deadlines
+- [ ] University virtual tours
+- [ ] Student reviews/ratings
 - [ ] Direct application submission
-- [ ] Scholarship database
+
+### Version 3.0
+- [ ] AI chat assistant
+- [ ] Scholarship finder
+- [ ] Housing recommendations
+- [ ] Study buddy matching
 - [ ] Career path predictions
-- [ ] AI chatbot assistant
+
+## 📝 Technical Debt
+
+### High Priority
+- [ ] Migrate to iOS 16+ features
+- [ ] SwiftData adoption
+- [ ] Async/await throughout
+- [ ] Proper error handling
+- [ ] Accessibility audit
+
+### Medium Priority
+- [ ] Code documentation
+- [ ] Performance monitoring
+- [ ] A/B testing framework
+- [ ] Localization system
+- [ ] Design system tokens
+
+### Low Priority
+- [ ] macOS Catalyst support
+- [ ] watchOS companion app
+- [ ] Siri shortcuts
+- [ ] App Clips
+- [ ] ARKit features
+
+## 🐛 Known Issues
+
+1. **Performance**: Initial load time on older devices
+2. **UI**: Keyboard overlap in some text fields
+3. **Data**: Mock data needs production replacement
+4. **Search**: Relevance algorithm improvements needed
+5. **Offline**: Limited offline functionality
+
+## 📅 Release Timeline
+
+- **v0.0.1** ✅ - Initial MVP (December 2024)
+- **v0.0.2** ✅ - Interactive Calculator (December 2024)
+- **v0.0.3** ✅ - AI Match & Search (January 2025)
+- **v0.0.4** ✅ - Enhanced UI & Bookmarks (January 2025)
+- **v0.0.5** 🚧 - Erasmus+ & Comparison (February 2025)
+- **v1.0.0** 📅 - App Store Release (March 2025)
+
+## 💡 Success Metrics
+
+- [ ] 10,000+ downloads in first month
+- [ ] 4.5+ App Store rating
+- [ ] 80%+ user retention after 7 days
+- [ ] 50%+ users complete AI Match
+- [ ] 30%+ users bookmark programs
+
+---
+
+**Last Updated**: January 2025
+**Next Review**: February 2025

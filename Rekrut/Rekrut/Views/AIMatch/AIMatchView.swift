@@ -39,6 +39,22 @@ struct AIMatchView: View {
                     answers: $answers,
                     showingResults: $showingResults
                 )
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        if currentStep > 0 {
+                            Button(action: {
+                                withAnimation {
+                                    currentStep -= 1
+                                }
+                            }) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "chevron.left")
+                                    Text("Wstecz")
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
         .background(Color.white)
@@ -82,10 +98,12 @@ struct AIMatchStartView: View {
                 Text("Dopasowanie AI")
                     .font(.largeTitle)
                     .fontWeight(.bold)
+                    .multilineTextAlignment(.center)
                 
                 Text("Znajdź idealny kierunek studiów")
                     .font(.title3)
                     .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
             }
             
             // Animated feature display
@@ -109,12 +127,9 @@ struct AIMatchStartView: View {
                     }
                 }
             }
-            .padding(.horizontal, 40)
             .onAppear {
                 startFeatureAnimation()
             }
-            
-            Spacer()
             
             Button(action: {
                 withAnimation {
@@ -129,9 +144,11 @@ struct AIMatchStartView: View {
                 .foregroundColor(.blue)
                 .font(.headline)
             }
-            .padding(.horizontal)
-            .padding(.bottom)
+            .padding(.top, 20)
+            
+            Spacer()
         }
+        .padding(.horizontal, 60)
         .background(Color.white)
     }
     
@@ -341,25 +358,27 @@ struct GridSkillsQuestionView: View {
     let skills: [(name: String, key: String)]
     @Binding var ratings: [String: Double]
     let onComplete: (() -> Void)?
+    let currentStep: Int
+    let totalSteps: Int
     
     var body: some View {
         VStack(spacing: 0) {
                 // Fixed 200pt hero section
                 VStack(spacing: 0) {
-                    Spacer()
+                    Spacer(minLength: 20)
                     
                     VStack(alignment: .leading, spacing: 8) {
                         Text(question)
                             .font(.title)
                             .fontWeight(.bold)
                             .multilineTextAlignment(.leading)
-                            .foregroundColor(.white)
+                            .foregroundColor(.primary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         
                         if let subtitle = subtitle {
                             Text(subtitle)
                                 .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.8))
+                                .foregroundColor(.secondary)
                                 .multilineTextAlignment(.leading)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
@@ -369,6 +388,27 @@ struct GridSkillsQuestionView: View {
                 }
                 .frame(height: 200)
                 .frame(maxWidth: .infinity)
+                
+                // Progress bar
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        // Background track
+                        Rectangle()
+                            .fill(Color.black.opacity(0.1))
+                            .frame(height: 6)
+                            .cornerRadius(3)
+                        
+                        // Progress fill
+                        Rectangle()
+                            .fill(Color.blue)
+                            .frame(width: geometry.size.width * (Double(currentStep + 1) / Double(totalSteps)), height: 6)
+                            .cornerRadius(3)
+                            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentStep)
+                    }
+                }
+                .frame(height: 6)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
                 
                 // Skills in single column
                 VStack(spacing: 12) {
@@ -407,6 +447,8 @@ struct GridQuestionView: View {
     @Binding var selection: Set<String>
     let allowsMultiple: Bool
     let onSelect: ((String) -> Void)?
+    let currentStep: Int
+    let totalSteps: Int
     
     private var paddedOptions: [AnswerOption] {
         var result = options
@@ -421,22 +463,31 @@ struct GridQuestionView: View {
         VStack(spacing: 0) {
                 // Fixed 200pt hero section
                 VStack(spacing: 0) {
-                    Spacer()
+                    Spacer(minLength: 20)
                     
                     VStack(alignment: .leading, spacing: 8) {
                         Text(question)
                             .font(.title)
                             .fontWeight(.bold)
                             .multilineTextAlignment(.leading)
-                            .foregroundColor(.white)
+                            .foregroundColor(.primary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         
                         if let subtitle = subtitle {
                             Text(subtitle)
                                 .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.8))
+                                .foregroundColor(.secondary)
                                 .multilineTextAlignment(.leading)
                                 .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        
+                        // Multiple selection hint
+                        if allowsMultiple {
+                            Text("Możesz wybrać kilka odpowiedzi")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.top, 4)
                         }
                     }
                     .padding(.horizontal, 24)
@@ -444,6 +495,27 @@ struct GridQuestionView: View {
                 }
                 .frame(height: 200)
                 .frame(maxWidth: .infinity)
+                
+                // Progress bar
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        // Background track
+                        Rectangle()
+                            .fill(Color.black.opacity(0.1))
+                            .frame(height: 6)
+                            .cornerRadius(3)
+                        
+                        // Progress fill
+                        Rectangle()
+                            .fill(Color.blue)
+                            .frame(width: geometry.size.width * (Double(currentStep + 1) / Double(totalSteps)), height: 6)
+                            .cornerRadius(3)
+                            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentStep)
+                    }
+                }
+                .frame(height: 6)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
                 
                 // Grid with normal flow
                 LazyVGrid(
@@ -477,14 +549,22 @@ struct GridQuestionView: View {
             .padding(.top, 12)
             .padding(.bottom, allowsMultiple ? 12 : 24)
             
-            // Multiple selection hint
-            if allowsMultiple {
-                Text("Możesz wybrać kilka odpowiedzi")
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                    .padding(.horizontal, 24)
-                    .padding(.top, 8)
-                    .padding(.bottom, 20)
+            // Next button for multiple selection
+            if allowsMultiple && !selection.isEmpty {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        onSelect?("")
+                    }) {
+                        Text("Dalej")
+                            .font(.headline)
+                            .foregroundColor(.blue)
+                    }
+                    .transition(.opacity)
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 8)
+                .padding(.bottom, 20)
             }
             
             Spacer()
@@ -501,6 +581,28 @@ struct AIMatchQuestionnaireView: View {
     
     @State private var showingCityPicker = false
     @State private var selectedCity: String = ""
+    
+    // Add progress component
+    private var progressBar: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                // Background track
+                Rectangle()
+                    .fill(Color.black.opacity(0.1))
+                    .frame(height: 4)
+                    .cornerRadius(2)
+                
+                // Progress fill
+                Rectangle()
+                    .fill(Color.blue)
+                    .frame(width: geometry.size.width * (Double(currentStep + 1) / Double(totalSteps)), height: 4)
+                    .cornerRadius(2)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentStep)
+            }
+        }
+        .frame(height: 4)
+        .padding(.horizontal, 24)
+    }
     
     let polishUniversityCities = [
         "Warszawa", "Kraków", "Wrocław", "Poznań", "Gdańsk", 
@@ -524,80 +626,7 @@ struct AIMatchQuestionnaireView: View {
     
     var body: some View {
         ZStack {
-            // Persistent background gradient
-            LinearGradient(
-                colors: [
-                    Color.blue,
-                    Color.blue.opacity(0.8),
-                    Color.blue.opacity(0.4),
-                    Color.blue.opacity(0.1),
-                    Color.clear
-                ],
-                startPoint: .top,
-                endPoint: .init(x: 0.5, y: 0.7)
-            )
-            .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Navigation bar with all elements in one line
-                ZStack {
-                // Step counter (center) - in ZStack to ensure true centering
-                Text("Krok \(currentStep + 1) z \(totalSteps)")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                
-                HStack {
-                    // Back button (left)
-                    if currentStep > 0 {
-                        Button(action: {
-                            withAnimation {
-                                currentStep -= 1
-                            }
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "chevron.left")
-                                Text("Wstecz")
-                            }
-                            .foregroundColor(.blue)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    // Next/Results button (right)
-                    if currentStep == totalSteps - 1 {
-                        Button(action: {
-                            triggerResultsHaptic()
-                            withAnimation {
-                                showingResults = true
-                            }
-                        }) {
-                            Text("Zobacz wyniki")
-                                .foregroundColor(isStepComplete() ? .blue : .gray)
-                        }
-                        .disabled(!isStepComplete())
-                    } else if currentStep < 5 {
-                        let canContinue = isStepComplete()
-                        Button(action: {
-                            if canContinue {
-                                triggerHapticFeedback()
-                                withAnimation {
-                                    currentStep += 1
-                                }
-                            }
-                        }) {
-                            Text("Dalej")
-                                .foregroundColor(canContinue ? .blue : .gray)
-                        }
-                        .disabled(!canContinue)
-                    }
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Color(.systemBackground))
-            
-            // Main content area
+            // Main content area with swipe gestures
             VStack(spacing: 0) {
                     
                     // Questions based on step
@@ -624,7 +653,14 @@ struct AIMatchQuestionnaireView: View {
                                     set: { answers["subjects"] = $0 }
                                 ),
                                 allowsMultiple: true,
-                                onSelect: nil
+                                onSelect: { _ in
+                                    triggerHapticFeedback()
+                                    withAnimation {
+                                        currentStep += 1
+                                    }
+                                },
+                                currentStep: currentStep,
+                                totalSteps: totalSteps
                             )
                         case 1:
                             GridQuestionView(
@@ -655,7 +691,9 @@ struct AIMatchQuestionnaireView: View {
                                             currentStep += 1
                                         }
                                     }
-                                }
+                                },
+                                currentStep: currentStep,
+                                totalSteps: totalSteps
                             )
                         case 2:
                             GridQuestionView(
@@ -692,7 +730,9 @@ struct AIMatchQuestionnaireView: View {
                                             }
                                         }
                                     }
-                                }
+                                },
+                                currentStep: currentStep,
+                                totalSteps: totalSteps
                             )
                         case 3:
                             GridQuestionView(
@@ -716,7 +756,14 @@ struct AIMatchQuestionnaireView: View {
                                     set: { answers["priorities"] = $0 }
                                 ),
                                 allowsMultiple: true,
-                                onSelect: nil
+                                onSelect: { _ in
+                                    triggerHapticFeedback()
+                                    withAnimation {
+                                        currentStep += 1
+                                    }
+                                },
+                                currentStep: currentStep,
+                                totalSteps: totalSteps
                             )
                         case 4:
                             GridSkillsQuestionView(
@@ -738,7 +785,9 @@ struct AIMatchQuestionnaireView: View {
                                     withAnimation {
                                         currentStep += 1
                                     }
-                                }
+                                },
+                                currentStep: currentStep,
+                                totalSteps: totalSteps
                             )
                         case 5:
                             OpenQuestion(
@@ -747,13 +796,45 @@ struct AIMatchQuestionnaireView: View {
                                 answer: Binding(
                                     get: { answers["dreamJob"] as? String ?? "" },
                                     set: { answers["dreamJob"] = $0 }
-                                )
+                                ),
+                                onComplete: {
+                                    triggerResultsHaptic()
+                                    withAnimation {
+                                        showingResults = true
+                                    }
+                                },
+                                currentStep: currentStep,
+                                totalSteps: totalSteps
                             )
                         default:
                             EmptyView()
                         }
                     }
-            }
+                .gesture(
+                    DragGesture()
+                        .onEnded { value in
+                            let horizontalAmount = value.translation.width
+                            let verticalAmount = value.translation.height
+                            
+                            // Horizontal swipe detection
+                            if abs(horizontalAmount) > abs(verticalAmount) {
+                                if horizontalAmount < -50 {
+                                    // Swipe left - go to next step if possible
+                                    if currentStep < totalSteps - 1 && isStepComplete() {
+                                        triggerHapticFeedback()
+                                        withAnimation {
+                                            currentStep += 1
+                                        }
+                                    }
+                                } else if horizontalAmount > 50 && currentStep > 0 {
+                                    // Swipe right - go to previous step
+                                    withAnimation {
+                                        currentStep -= 1
+                                    }
+                                }
+                            }
+                        }
+                )
             .sheet(isPresented: $showingCityPicker) {
                 NavigationView {
                     VStack(spacing: 0) {
@@ -849,20 +930,23 @@ struct OpenQuestion: View {
     let question: String
     let prompt: String
     @Binding var answer: String
+    let onComplete: (() -> Void)?
+    let currentStep: Int
+    let totalSteps: Int
     @FocusState private var isFocused: Bool
     
     var body: some View {
         VStack(spacing: 0) {
                 // Fixed 200pt hero section
                 VStack(spacing: 0) {
-                    Spacer()
+                    Spacer(minLength: 20)
                     
                     VStack(alignment: .leading, spacing: 8) {
                         Text(question)
                             .font(.title)
                             .fontWeight(.bold)
                             .multilineTextAlignment(.leading)
-                            .foregroundColor(.white)
+                            .foregroundColor(.primary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         
                         Text(prompt)
@@ -876,6 +960,27 @@ struct OpenQuestion: View {
                 }
                 .frame(height: 200)
                 .frame(maxWidth: .infinity)
+                
+                // Progress bar
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        // Background track
+                        Rectangle()
+                            .fill(Color.black.opacity(0.1))
+                            .frame(height: 6)
+                            .cornerRadius(3)
+                        
+                        // Progress fill
+                        Rectangle()
+                            .fill(Color.blue)
+                            .frame(width: geometry.size.width * (Double(currentStep + 1) / Double(totalSteps)), height: 6)
+                            .cornerRadius(3)
+                            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentStep)
+                    }
+                }
+                .frame(height: 6)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
                 
                 // Text editor section
                 VStack(alignment: .trailing, spacing: 12) {
@@ -898,7 +1003,24 @@ struct OpenQuestion: View {
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 12)
-                .padding(.bottom, 24)
+                .padding(.bottom, 20)
+                
+                // Show results button when requirement is met
+                if answer.count >= 50 {
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            onComplete?()
+                        }) {
+                            Text("Zobacz wyniki")
+                                .font(.headline)
+                                .foregroundColor(.blue)
+                        }
+                        .transition(.opacity)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 24)
+                }
                 
                 Spacer()
             }

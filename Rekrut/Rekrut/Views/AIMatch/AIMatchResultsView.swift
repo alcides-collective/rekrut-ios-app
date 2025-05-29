@@ -746,41 +746,86 @@ private func generateRecommendedMajors(answers: [String: Any], programs: [(progr
 }
 
 private func generateWhyRecommended(for program: StudyProgram, answers: [String: Any], score: Int) -> String {
-    var explanation = ""
+    let university = MockDataService.shared.mockUniversities.first { $0.id == program.universityId }
     
-    // Subject-based reasoning
-    if let subjects = answers["subjects"] as? Set<String> {
-        if subjects.contains("Matematyka i fizyka") && program.field.contains("Informatyka") {
-            explanation = "Twoje predyspozycje matematyczne idealnie pasują do programowania i algorytmów"
-        } else if subjects.contains("Biologia i chemia") && program.field.contains("Medycyna") {
-            explanation = "Silne podstawy w naukach przyrodniczych to fundament kariery medycznej"
-        } else if subjects.contains("Języki i historia") && program.field.contains("Prawo") {
-            explanation = "Umiejętności analityczne i komunikacyjne są kluczowe w prawie"
-        }
+    // Create detailed explanations based on actual mock program fields
+    switch program.field {
+    case "Informatyka":
+        return "Twoje mocne podstawy matematyczne są fundamentem programowania. Sektor IT oferuje najwyższe zarobki na polskim rynku - od 8 do 30 tys. zł miesięcznie."
+    case "Data Science":
+        return "Analiza danych to przyszłość biznesu. Twoje umiejętności matematyczne pozwolą odkrywać wartościowe wglądy z big data."
+    case "Robotyka":
+        return "Robotyka łączy programowanie z inżynieria mechaniczną. Będziesz tworzyć przyszłość automatyzacji i sztucznej inteligencji."
+    case "Medycyna":
+        return "Twoja fascynacja naukami przyrodniczymi to idealny fundament dla medycyny. Każdego dnia możesz ratować życie pacjentów."
+    case "Stomatologia":
+        return "Połączenie precyzji chirurgicznej z kontaktem z pacjentami. Stomatolodzy mają jedne z najwyższych zarobków w medycynie."
+    case "Weterynaria":
+        return "Jeśli kochasz zwierzęta i nauki przyrodnicze, weterynaria łączy obie pasje w jednej pięknej profesji."
+    case "Fizjoterapia":
+        return "Pomagasz ludziom odzyskać sprawność i życie bez bólu. Fizjoterapia to rosnaca branża z dużym zapotrzebowaniem."
+    case "Prawo":
+        return "Twoje umiejętności analityczne są kluczowe w interpretacji prawa. Prawnicy w top kancelariach zarabiają od 15 do 50 tys. zł."
+    case "Ekonomia":
+        return "Ekonomia to język biznesu. Otwiera drzwi do banków, konsultingu i start-upów z świetną perspektywą zarobkową."
+    case "Stosunki międzynarodowe":
+        return "W globalnym świecie eksperci od stosunków międzynarodowych są nieocenieni w dyplomacji i korporacjach."
+    case "Inżynieria":
+        return "Inżynierowie projektują przyszłość. Twoje pasje matematyczno-fizyczne znajdą praktyczne zastosowanie."
+    case "Inżynieria środowiska":
+        return "Walczysz ze zmianami klimatu projektując zrównoważone rozwiązania. Planeta potrzebuje takich inżynierów jak Ty."
+    case "Energetyka":
+        return "Odnawialne źródła energii to przyszłość. Będziesz budować świat niezależny od paliw kopalnych."
+    case "Lotnictwo":
+        return "Jeśli marzyłeś o lataniu, lotnictwo łączy pasję z wysoką technologią i świetną perspektywą kariery."
+    case "Psychologia":
+        return "Pomagasz ludziom w trudnych momentach i obserwujesz ich pozytywną transformację. Psychologia to klucz do zrozumienia człowieka."
+    case "Praca socjalna":
+        return "Jeśli chcesz pomagać najbardziej potrzebującym, praca socjalna daje możliwość realnej zmiany życia ludzi."
+    case "Architektura":
+        return "Projektowanie przestrzeni to sztuka użytkowa. Każdy Twój projekt będzie służyć ludziom przez dziesiątki lat."
+    case "Architektura wnętrz":
+        return "Tworzyjesz przestrzenie, w których ludzie czują się dobrze. Połączenie estetyki z funkcjonalnością."
+    case "Wzornictwo":
+        return "Design to język przyszłości. Od aplikacji po produkty - wzornictwo kształtuje nasze codzienne doświadczenia."
+    case "Dziennikarstwo":
+        return "Jako dziennikarz kształtujesz opinię publiczną i demaskujesz nadużycia. To czwarta władza w demokratycznym świecie."
+    case "Biotechnologia":
+        return "Twoja fascynacja życiem na poziomie molekularnym to klucz do przyszłości medycyny i rolnictwa personalnego."
+    case "Sztuka":
+        return "Sztuka to najczystsza forma ekspresji. Możesz dzielić się swoją wizją świata i wpływać na kulturę."
+    case "Muzyka":
+        return "Muzyka to uniwersalny język emocji. Możesz poruszać serca ludu i tworzyć dzieła na wieki."
+    case "Sport":
+        return "Sport to inwestycja w zdrowie na całe życie. Możesz inspirować innych do aktywnego trybu życia."
+    case "Gastronomia":
+        return "Gastronomia to sztuka smaków. Tworzysz culinary experiences, które pozostają w pamięci na zawsze."
+    default:
+        return generateDetailedExplanation(for: program, university: university, answers: answers)
     }
+}
+
+private func generateDetailedExplanation(for program: StudyProgram, university: University?, answers: [String: Any]) -> String {
+    var reasons: [String] = []
     
-    // Priority-based reasoning
+    // University prestige
     if let priorities = answers["priorities"] as? Set<String> {
-        if priorities.contains("Prestiż uczelni") && ["UW", "UJ", "PW"].contains(program.universityId) {
-            if !explanation.isEmpty { explanation += ". " }
-            explanation += "Prestiżowa uczelnia o wysokiej pozycji w rankingach"
-        }
-        if priorities.contains("Wysokie zarobki") && program.field.contains("Informatyka") {
-            if !explanation.isEmpty { explanation += ". " }
-            explanation += "Sektor IT oferuje jedne z najwyższych zarobków na rynku"
+        if priorities.contains("Prestiż uczelni") && ["UW", "UJ", "PW", "AGH"].contains(program.universityId) {
+            reasons.append("Prestiżowa uczelnia o uznanej pozycji w rankingach")
         }
     }
     
-    // Location preference
+    // Location benefits
     if let location = answers["location"] as? String {
-        let university = MockDataService.shared.mockUniversities.first { $0.id == program.universityId }
-        if location.contains("dużym mieście") && ["Warszawa", "Kraków", "Wrocław"].contains(university?.city ?? "") {
-            if !explanation.isEmpty { explanation += ". " }
-            explanation += "Studiowanie w dynamicznym metropolii"
+        if location.contains("dużym mieście") && ["Warszawa", "Kraków", "Wrocław", "Gdańsk"].contains(university?.city ?? "") {
+            reasons.append("Studiowanie w dynamicznej metropolii z bogatymi możliwościami praktyk")
         }
     }
     
-    return explanation.isEmpty ? "Kierunek dopasowany do Twojego profilu i preferencji" : explanation
+    // Default field-specific insight
+    reasons.append("Kierunek o dobrych perspektywach zawodowych idealnie dopasowany do Twojego profilu")
+    
+    return reasons.joined(separator: ". ") + "."
 }
 
 
@@ -934,13 +979,6 @@ struct ProgramGridCard: View {
                 
                 // Program info with AI explanation
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(program.name)
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
-                        .lineLimit(2)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
                     HStack(spacing: 4) {
                         Text(university.shortName ?? university.displayName)
                             .font(.caption2)
@@ -959,8 +997,9 @@ struct ProgramGridCard: View {
                     // AI-generated explanation
                     Text(whyRecommended)
                         .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .lineLimit(3)
+                        .foregroundColor(.primary)
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding(12)
@@ -1051,6 +1090,7 @@ struct GridInsightCardWithBadge: View {
                         .font(.caption)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
+                        .minimumScaleFactor(0.7)
                         .lineLimit(1)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
@@ -1066,7 +1106,7 @@ struct GridInsightCardWithBadge: View {
                             .foregroundColor(color)
                     }
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 12)
             }
             
             // White content area
@@ -1074,7 +1114,7 @@ struct GridInsightCardWithBadge: View {
                 .font(.caption)
                 .foregroundColor(.primary)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-                .padding(16)
+                .padding(12)
                 .background(Color.white)
         }
         .cornerRadius(16)
@@ -1095,10 +1135,10 @@ struct GridInsightCard: View {
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
+                .minimumScaleFactor(0.7)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(16)
-                .frame(height: 48)
+                .padding(12)
                 .background(color)
             
             // White content area
@@ -1106,7 +1146,7 @@ struct GridInsightCard: View {
                 .font(.caption)
                 .foregroundColor(.primary)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-                .padding(16)
+                .padding(12)
                 .background(Color.white)
         }
         .cornerRadius(16)

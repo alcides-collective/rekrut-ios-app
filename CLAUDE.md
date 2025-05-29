@@ -1,391 +1,301 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with the Rekrut iOS application codebase.
 
-## Project Overview
+## 🚀 Quick Start
 
-**Rekrut** - iOS application for university applicants and students in Poland
-- App Name: Rekrut
-- Website: rekrut.app
-- Platform: iOS 15.0+ (Swift 5 + SwiftUI)
-- Backend: Firebase (Auth, Firestore, Realtime Database, Storage)
-- Architecture: MVVM
-- Language: Polish (UI), English (code/comments)
-
-## Project Status
-
-Active development phase with core features implemented:
-- ✅ Tab-based navigation (5 tabs + profile button)
-- ✅ User authentication flow
-- ✅ Smart search system
-- ✅ Compact Matura calculator
-- ✅ AI Match questionnaire
-- ✅ Explore feed with filters
-- 🚧 Program comparison
-- 🚧 Firebase security rules
-
-## Build & Development Commands
+### Frequently Used Commands
 
 ```bash
 # Open project in Xcode
 open Rekrut/Rekrut.xcodeproj
 
-# Clean build folder
-cmd+shift+k (in Xcode)
-
-# Build project
-cmd+b (in Xcode)
-
-# Run on simulator
-cmd+r (in Xcode)
-```
-
-## Git Configuration
-
-Repository uses SSH authentication:
-```bash
-# Push changes
+# Git operations
+git status
+git add .
+git commit -m "feat: Description of changes"
 git push origin main
-
-# Pull latest changes
 git pull origin main
 
-# Create and push new branch
+# Build & Run
+rekrutbuild   # Build project and show errors (custom command)
+              # Alias for: cd /Users/jakubdudek/Desktop/RekrutApp/Rekrut && xcodebuild -project Rekrut.xcodeproj -scheme Rekrut -sdk iphonesimulator build 2>&1 | grep -E "(error:|warning:|BUILD)" | tail -20
+
+# Build & Run (in Xcode)
+cmd+b         # Build
+cmd+r         # Run on simulator
+cmd+shift+k   # Clean build folder
+cmd+u         # Run tests
+
+# Create feature branch
 git checkout -b feature/branch-name
 git push -u origin feature/branch-name
 ```
 
-SSH key location: `~/.ssh/id_ed25519`
-Remote URL: `git@github.com:alcides-collective/rekrut-ios-app.git`
+### Repository Configuration
+- **Remote**: `git@github.com:alcides-collective/rekrut-ios-app.git`
+- **SSH Key**: `~/.ssh/id_ed25519`
+- **Default Branch**: `main`
 
-## Architecture & Conventions
+## 📱 Project Overview
 
-### MVVM Pattern
-- **Models**: Pure data structures (Codable)
-- **Views**: SwiftUI views with minimal logic
-- **ViewModels**: Business logic, marked with @StateObject/@ObservedObject
-- **Services**: External integrations (Firebase, APIs)
+**Rekrut** - iOS app for Polish university applicants and students
+- **Platform**: iOS 15.0+ (Swift 5, SwiftUI)
+- **Architecture**: MVVM
+- **Backend**: Firebase (Auth, Firestore, Storage)
+- **UI Language**: Polish
+- **Code Language**: English (comments/naming)
+- **Website**: rekrut.app
+
+### Current Status
+- ✅ Core features implemented
+- ✅ Tab navigation + profile button
+- ✅ Authentication (Apple Sign In)
+- ✅ Smart search system
+- ✅ Interactive Matura calculator
+- ✅ AI Match questionnaire
+- ✅ Explore feed with filters
+- ✅ Bookmark functionality
+- 🚧 Program comparison
+- 🚧 Firebase security rules
+
+## 🏗 Architecture & Patterns
+
+### MVVM Structure
+```
+Models/         # Pure data structures (Codable)
+Views/          # SwiftUI views (minimal logic)
+ViewModels/     # Business logic (@StateObject/@ObservedObject)
+Services/       # External integrations (Firebase, APIs)
+Extensions/     # Swift extensions
+```
 
 ### Naming Conventions
-- Views: `*View.swift` (e.g., `ExploreView.swift`)
-- ViewModels: `*ViewModel.swift` (e.g., `CalculatorViewModel.swift`)
-- Models: Singular nouns (e.g., `University.swift`)
-- Services: `*Service.swift` (e.g., `FirebaseService.swift`)
+- **Views**: `*View.swift` (e.g., `ExploreView.swift`)
+- **ViewModels**: `*ViewModel.swift` (e.g., `CalculatorViewModel.swift`)
+- **Models**: Singular nouns (e.g., `University.swift`)
+- **Services**: `*Service.swift` (e.g., `FirebaseService.swift`)
+- **Extensions**: `Type+Functionality.swift` (e.g., `StudyProgram+PointCalculation.swift`)
 
-### UI/UX Guidelines
-- **Simplicity First**: Reduce clicks, minimize vertical space
-- **iOS Native Patterns**: Profile in nav bar, not tab bar
-- **Polish UI**: All user-facing text in Polish
-- **Compact Design**: Dropdown menus over chips, collapsible sections
-- **Smart Defaults**: Pre-fill common values, hide optional fields
-
-### Code Style
-- iOS 15.0 compatibility (avoid iOS 16+ APIs)
-- Use `.fontWeight()` instead of `.bold()` for iOS 15
-- Prefer SwiftUI over UIKit
-- Keep views under 200 lines
-- Extract reusable components
-
-## Current File Structure
-
-```
-Rekrut/
-├── App/
-│   ├── RekrutApp.swift              # App entry point
-│   └── AppDelegate.swift            # Firebase initialization
-├── Models/
-│   ├── User.swift                   # User authentication model
-│   ├── University.swift             # University data model
-│   ├── StudyProgram.swift           # Study program details
-│   ├── MaturaScore.swift            # Matura exam scores
-│   └── StudyMode.swift              # Study mode enum
-├── Views/
-│   ├── MainTabView.swift            # Tab navigation (5 tabs)
-│   ├── Auth/
-│   │   ├── LoginView.swift
-│   │   └── SignUpView.swift
-│   ├── Calculator/
-│   │   ├── InteractiveMaturaView.swift        # NEW: Visual progress bars
-│   │   ├── CompactMaturaCalculatorView.swift  # Previous compact design
-│   │   └── SimpleMaturaCalculatorView.swift   # Original version
-│   ├── Comparison/
-│   │   └── ComparisonView.swift
-│   ├── Explore/
-│   │   └── ExploreFeedView.swift    # NEW: Dropdown filters
-│   ├── Profile/
-│   │   └── ProfileView.swift
-│   ├── Search/
-│   │   ├── SearchView.swift         # NEW: Smart search
-│   │   └── SearchSuggestionsView.swift
-│   ├── AIMatch/
-│   │   └── AIMatchView.swift        # 5-step questionnaire
-│   └── Shared/
-│       └── LoadingView.swift
-├── ViewModels/
-│   ├── AuthViewModel.swift
-│   ├── CalculatorViewModel.swift
-│   └── ComparisonViewModel.swift
-├── Services/
-│   ├── FirebaseService.swift        # Firebase integration
-│   └── MockDataService.swift        # Test data
-└── Resources/
-    └── GoogleService-Info.plist     # Firebase config
-```
-
-## Recent Changes & Patterns
-
-### AI Match Questionnaire Redesign (January 2025)
-- **Grid-based Layout**: Stable 2-column grid replacing vertical lists
-- **Consolidated Steps**: Reduced from 11 to 6 steps (skills on 1 screen)
-- **City Selection**: Dynamic sheet for "Blisko domu" option
-- **Blue Theme**: Consistent with app's primary color (replaced purple)
-- **Performance**: Removed animations to eliminate flickering
-- **Navigation**: All controls in one line (back/steps/next)
-
-### Authentication System (January 2025)
-- **Apple Sign In Only**: Removed email/password authentication for enhanced security
-- Simplified authentication flow with direct Sign in with Apple button
-- No separate signup process - Apple handles new user creation
-- Automatic user profile creation on first sign in
-- Mock user data for development testing with high matura scores
-
-### Dynamic Formula-Based Point Calculation (January 2025)
-- **FormulaCalculator Service**: Sophisticated parser for Polish university admission formulas
-- Supports various formula patterns:
-  - Weighted subjects: `0.5 × matematyka (R) + 0.3 × fizyka (R)`
-  - Shorthand notation: `W = 0.5 * MAT_R + 0.3 * INF_R`
-  - Max functions: `max(fizyka, chemia, informatyka)`
-  - Division: `(mat + fiz + język) / 3`
-- Smart subject recognition with Polish aliases
-- Handles both basic (P) and extended (R) levels
-- StudyProgram extension for easy calculation access
-
-### Progress Indicators Across All Cards (January 2025)
-- **Green dots** when user exceeds 100% of threshold
-- **Yellow dots** for 80-99% (good chances)
-- **Red dots** below 80% (lower chances)
-- "+X%" display when above threshold (e.g., "+7%" for 107%)
-- Consistent implementation across:
-  - TrendingProgramCard
-  - RecommendedProgramCard
-  - ProgramRowCard
-  - AIMatchProgramCard
-
-### Bookmark/Favorite Functionality (January 2025)
-- Save programs to user profile
-- BookmarkedProgramsView in Profile section
-- Bookmark indicators on all program cards
-- Swipe to remove from bookmarks
-- Empty state with navigation to Explore
-
-### ProgramDetailView UI Improvements (January 2025)
-- Reduced spacing between program name and university info (8→4pt)
-- Widened essential info panel by reducing padding (24→16pt)
-- Made "Twoje szanse" a proper panel with shadow and rounded corners
-- Decreased panel spacing for more compact layout (32→24pt)
-- Added 60pt top padding to program header
-- Extended gradient overlays: dark gradient (3→7 stops), white gradient (6→10 stops, 200→280pt)
-- Fixed "Termin składania" alignment to be on same line as date
-- Simplified Rekrutacja section with clean VStack layout
-- Changed formula background to secondarySystemBackground for better contrast
-- Increased progress bar thickness (4→8pt)
-- Added smart progress display: nothing at 100%, percentage below 100%, "+X%" above 100%
-
-### AI Match Questionnaire (v0.0.3 - January 2025)
-- **Stable Grid Layout**: 2-column grid for answer options, single column for skill ratings
-- **Fixed Hero Section**: 200pt height with blue gradient background
-- **Left-aligned Questions**: Larger font (.title) positioned at bottom of hero
-- **Compact Design**: 
-  - Answer panels: 13pt font, left-aligned text, iOS-style shadows
-  - Skill ratings: Single row with 5 stars, no transparency changes
-  - Reduced from 11 to 8 total steps (consolidated skills)
-- **City Picker Sheet**: Appears when "Blisko domu" selected, 25 Polish university cities
-- **Visual Consistency**: Blue color scheme throughout (replaced purple)
-- **Performance**: Removed animations to prevent flickering
-- **Polish UI Elements**: "Możesz wybrać kilka odpowiedzi" shown below multi-select grids
-
-### Interactive Matura Calculator (v0.0.2 - December 2024)
-- Complete redesign with visual progress bars
-- Text input fields for easy score entry (replaced picker wheels)
-- Split color rendering: black text on white, white text on color
-- Colorful emoji on white background, monochrome on colored
-- All subjects visible without dropdowns or expandable sections
-- Performance optimized by removing live program matching
-- RoundedRectangle shapes for proper corner rendering at 100%
-- Right-aligned numbers with minimal spacing to % symbol
-- Placeholder "—" shows when score is empty
-- Single "Gotowe" button on keyboard toolbar
-
-### Smart Search System (NEW)
-- No filtering UI - intelligent search across all fields
-- Recent searches persisted in UserDefaults
-- Mixed results (programs + universities)
-- Relevance-based sorting
-- Search suggestions when query is empty
-
-### Explore Feed Improvements
-- Replaced chip filters with dropdown menus
-- Reduced vertical space usage by 40%
-- Smoother animations with explicit durations
-- Removed decorative hero section
-
-### Navigation Structure
-- 5 tabs: Explore, Search, Calculator, Compare, AI Match
-- Profile accessible via navigation bar button (iOS pattern)
-- NavigationViewWithProfile wrapper for consistent header
-- Sheet presentations for all detail views (not push navigation)
-- "Zamknij" buttons on all sheets for consistency
-- Updated UniversityListView and CategoryProgramsView to use sheet presentations
-
-## Common Tasks
-
-### Adding a New View
-1. Create view file in appropriate folder
-2. Add to navigation if needed
-3. Create ViewModel if complex logic required
-4. Update MockDataService if test data needed
-
-### Firebase Integration
+### Code Style Preferences
 ```swift
-// Use singleton
-FirebaseService.shared
+// iOS 15 compatibility - avoid iOS 16+ APIs
+.fontWeight(.bold)          // ✅ Use this
+.bold()                     // ❌ iOS 16+ only
 
 // Async/await pattern
 Task {
     do {
-        let data = try await firebaseService.fetchData()
+        let data = try await service.fetchData()
     } catch {
         // Handle error
     }
 }
+
+// View state management
+@StateObject private var viewModel = SomeViewModel()
+@State private var localState = false
+
+// Polish date formatting
+let formatter = DateFormatter()
+formatter.locale = Locale(identifier: "pl_PL")
+formatter.dateStyle = .medium
 ```
 
-### iOS 15 Compatibility Fixes
+### UI/UX Guidelines
+- **Simplicity First**: Minimize clicks and vertical space
+- **iOS Native**: Profile in nav bar (not tab bar)
+- **Compact Design**: Dropdowns > chips, collapsible sections
+- **Smart Defaults**: Pre-fill common values
+- **Polish UI**: All user-facing text in Polish
+- **Sheet Navigation**: Use sheets for detail views (not push)
+
+## 🎯 Key Features & Implementation
+
+### 1. Navigation Structure
+- **5 Tabs**: Explore, Erasmus+, AI Match, Calculator, Search
+- **Profile**: Navigation bar button (iOS pattern)
+- **Sheets**: All detail views use `.sheet()` presentation
+
+### 2. Authentication (Apple Sign In Only)
 ```swift
-// ❌ iOS 16+ only
-.fontWeight(.bold)
-.bold()
-
-// ✅ iOS 15 compatible
-.fontWeight(.bold)
-Text("").bold()  // without parameter
-
-// For conditional bold
-if condition {
-    Text("").bold()
-} else {
-    Text("")
+// In AuthViewModel
+func signInWithApple() async throws {
+    // Apple handles user creation automatically
+    // No separate signup flow needed
 }
 ```
 
-## Testing Approach
-
-- SwiftUI Previews for UI testing
-- MockDataService for test data
-- Manual testing on iOS 15.0 simulator
-
-## Important Notes
-
-1. **Always maintain Polish language in UI** - all user-facing text
-2. **Keep designs compact** - mobile screens are small
-3. **Follow iOS native patterns** - users expect familiarity
-4. **Prioritize UX over features** - simplicity wins
-5. **Test on iOS 15.0** - our minimum deployment target
-6. **Security**: Never commit credentials or tokens to the repository
-7. **Performance**: Test on real devices, especially for animations and gestures
-
-## 🎓 Proprietary Rekrut Score™ System
-
-### Overview
-Rekrut Score is our innovative 0-100 standardized scoring system that solves the problem of comparing admission chances across different Polish universities with varying admission formulas.
-
-### Why Rekrut Score?
-- Each university uses different Matura subject weights
-- Thresholds vary wildly (some use 0-100, others 0-600+ scales)
-- Students can't easily compare their chances across programs
-- Our score provides instant, visual admission probability
-
-### Rekrut Score Calculation
+### 3. Dynamic Formula Calculator
 ```swift
-struct RekrutScoreCalculator {
-    func calculate(program: StudyProgram) -> Int {
-        let baseScore = normalizeThreshold(program.lastYearThreshold)
-        let competition = calculateCompetitionFactor(program)
-        let fieldBonus = getFieldAdjustment(program.field)
-        let historicalTrend = analyzeHistoricalData(program.scoreHistory)
-        
-        let rawScore = baseScore * competition * fieldBonus * historicalTrend
-        return min(max(Int(rawScore), 0), 100)
-    }
-}
+// FormulaCalculator supports:
+- Weighted: "0.5 × matematyka (R) + 0.3 × fizyka (R)"
+- Shorthand: "W = 0.5 * MAT_R + 0.3 * INF_R"
+- Max functions: "max(fizyka, chemia, informatyka)"
+- Division: "(mat + fiz + język) / 3"
 ```
 
-### Score Components
-1. **Base Score** (40%): Normalized threshold from university's scale
-2. **Competition Factor** (30%): Slots-to-applicants ratio
-3. **Historical Trend** (20%): 3-year threshold movement
-4. **Field Adjustment** (10%): Difficulty modifier by field
+### 4. Progress Indicators
+- 🟢 Green: >100% threshold (shows "+X%")
+- 🟡 Yellow: 80-99% (good chances)
+- 🔴 Red: <80% (lower chances)
 
-### Visual Indicators
-- **0-70** 🟢: Good chances ("Dobre szanse")
-- **71-85** 🟡: Moderate ("Średnia konkurencja")
-- **86-100** 🔴: Highly competitive ("Wysoka konkurencja")
+### 5. AI Match Questionnaire
+- 6 steps (consolidated from 11)
+- 2-column grid layout
+- Blue theme throughout
+- City picker sheet for "Blisko domu"
+- No animations (performance)
 
-### Implementation Details
-- Stored as `rekrutScore` in StudyProgram model
-- Updated annually after admission results
-- Displayed prominently in UI with color coding
-- Actual thresholds shown in detail views for transparency
-- Used for sorting and filtering in explore/search
+### 6. Search System
+- Smart search across all fields
+- No filter UI needed
+- Mixed results (programs + universities)
+- Recent searches in UserDefaults
 
-## Firebase Structure
+## 🎓 Rekrut Score™ System
+
+Our proprietary 0-100 scoring system standardizes admission chances across Polish universities.
+
+### Components
+1. **Base Score (40%)**: Normalized threshold
+2. **Competition (30%)**: Slots-to-applicants ratio
+3. **Historical Trend (20%)**: 3-year movement
+4. **Field Adjustment (10%)**: Difficulty modifier
+
+### Visual Scale
+- **0-70**: 🟢 Good chances
+- **71-85**: 🟡 Moderate competition
+- **86-100**: 🔴 Highly competitive
+
+## 📁 File Structure
+
+```
+Rekrut/
+├── App/
+│   └── RekrutApp.swift                    # Entry point
+├── Models/
+│   ├── User.swift                         # Auth model
+│   ├── University.swift                   # University data
+│   ├── StudyProgram.swift                 # Program details
+│   ├── MaturaScore.swift                  # Exam scores
+│   └── ErasmusProgram.swift               # Exchange programs
+├── Views/
+│   ├── MainTabView.swift                  # Tab navigation
+│   ├── Auth/LoginView.swift               # Apple Sign In
+│   ├── Calculator/InteractiveMaturaView.swift
+│   ├── Comparison/ComparisonView.swift
+│   ├── Explore/ExploreFeedView.swift
+│   ├── Profile/ProfileView.swift
+│   ├── Search/SearchView.swift
+│   └── AIMatch/AIMatchView.swift
+├── ViewModels/
+│   ├── AuthViewModel.swift
+│   └── CalculatorViewModel.swift
+├── Services/
+│   ├── FirebaseService.swift              # Singleton
+│   ├── FormulaCalculator.swift            # Point calculation
+│   └── MockDataService.swift              # Test data
+└── Resources/
+    └── GoogleService-Info.plist           # Firebase config
+```
+
+## 🔥 Firebase Structure
 
 ```
 Firestore:
-├── users/
-│   └── {userId}/
-├── universities/
-│   └── {universityId}/
-├── programs/
-│   └── {programId}/
-│       ├── rekrutScore: number (0-100)
-│       ├── lastYearThreshold: number (actual points)
-│       └── scoreHistory: array<{year, score}>
-└── erasmus/
-    └── {programId}/
+├── users/{userId}/
+│   ├── profile
+│   ├── bookmarks
+│   └── preferences
+├── universities/{universityId}/
+├── programs/{programId}/
+│   ├── rekrutScore: number
+│   ├── lastYearThreshold: number
+│   └── formula: string
+└── erasmus/{programId}/
 
 Realtime Database:
-├── userPreferences/
 ├── searchHistory/
 └── calculations/
 ```
 
-## Common Patterns
+## 🛠 Common Tasks
 
-### View State Management
+### Adding a New View
+1. Create view in appropriate folder
+2. Add ViewModel if complex logic needed
+3. Update navigation/sheets
+4. Add mock data if needed
+5. Test on iOS 15.0 simulator
+
+### Firebase Operations
 ```swift
-struct SomeView: View {
-    @StateObject private var viewModel = SomeViewModel()
-    @State private var localState = false
-    
-    var body: some View {
-        // View content
+// Always use singleton
+let service = FirebaseService.shared
+
+// Fetch data
+Task {
+    do {
+        let programs = try await service.fetchPrograms()
+    } catch {
+        print("Error: \(error)")
     }
 }
 ```
 
-### Async Data Loading
-```swift
-.onAppear {
-    Task {
-        await viewModel.loadData()
-    }
-}
-```
+### Testing Checklist
+- [ ] iOS 15.0 compatibility
+- [ ] Polish UI text correct
+- [ ] Animations smooth
+- [ ] Offline handling
+- [ ] Empty states
+- [ ] Error states
 
-### Polish Date Formatting
-```swift
-let formatter = DateFormatter()
-formatter.locale = Locale(identifier: "pl_PL")
-formatter.dateStyle = .medium
+## ⚠️ Important Notes
+
+1. **Polish UI**: All user-facing text must be in Polish
+2. **iOS 15 Target**: Test features on iOS 15.0 simulator
+3. **Compact Design**: Mobile screens are small - optimize space
+4. **Performance**: Remove unnecessary animations
+5. **Security**: Never commit credentials or API keys
+6. **Git Workflow**: Feature branches → PR → main
+
+## 📝 Recent Changes Log
+
+### January 2025
+- Redesigned AI Match with stable grid layout
+- Implemented Apple Sign In only authentication
+- Added dynamic formula-based calculations
+- Enhanced all program cards with progress indicators
+- Added bookmark/favorite functionality
+- Improved ProgramDetailView spacing and gradients
+- Smart search with mixed results
+
+### December 2024
+- Interactive Matura Calculator with progress bars
+- Explore feed with dropdown filters
+- Sheet-based navigation pattern
+
+## 🚨 Troubleshooting
+
+### Common Issues
+1. **Build fails**: Clean build folder (cmd+shift+k)
+2. **Firebase errors**: Check GoogleService-Info.plist
+3. **UI glitches**: Test on real device
+4. **Polish characters**: Ensure UTF-8 encoding
+
+### Debug Commands
+```bash
+# Check git status
+git status
+
+# View recent commits
+git log --oneline -10
+
+# Reset local changes
+git checkout -- .
+
+# Update dependencies
+cd Rekrut && swift package update
 ```

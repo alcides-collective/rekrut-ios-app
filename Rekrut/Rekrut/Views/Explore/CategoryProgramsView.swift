@@ -14,6 +14,8 @@ struct CategoryProgramsView: View {
     
     @State private var programs: [StudyProgram] = []
     @State private var isLoading = true
+    @State private var selectedSubcategory: String? = nil
+    @State private var allPrograms: [StudyProgram] = []
     
     // Comprehensive mapping of categories to fields
     private var categoryFields: [String] {
@@ -27,17 +29,17 @@ struct CategoryProgramsView: View {
         case "Prawo i Administracja":
             return ["Prawo", "Administracja", "Administracja publiczna", "Bezpieczeństwo wewnętrzne", "Kryminologia", "Stosunki międzynarodowe"]
         case "Inżynieria i Technika":
-            return ["Inżynieria", "Automatyka", "Robotyka", "Mechanika", "Elektronika", "Budownictwo", "Architektura", "Lotnictwo"]
+            return ["Inżynieria", "Automatyka", "Robotyka", "Mechanika", "Elektronika", "Budownictwo", "Architektura", "Lotnictwo", "Inżynieria środowiska", "Energetyka"]
         case "Humanistyka i Języki":
             return ["Filologia", "Historia", "Filozofia", "Kulturoznawstwo", "Lingwistyka", "Przekład", "Dziennikarstwo", "Komunikacja społeczna"]
         case "Sztuka i Design":
-            return ["Sztuka", "Grafika", "Design", "Wzornictwo", "Architektura wnętrz", "Fotografia", "Film", "Muzyka", "Teatr", "Konserwacja dzieł sztuki"]
+            return ["Sztuka", "Grafika", "Design", "Wzornictwo", "Architektura wnętrz", "Fotografia", "Film", "Muzyka", "Teatr", "Konserwacja dzieł sztuki", "Animacja"]
         case "Sport i Turystyka":
             return ["Wychowanie fizyczne", "Sport", "Turystyka", "Rekreacja", "Dietetyka sportowa", "Fizjoterapia sportowa", "Zarządzanie sportem"]
         case "Nauki społeczne":
-            return ["Psychologia", "Socjologia", "Pedagogika", "Praca socjalna", "Politologia", "Nauki o rodzinie", "Resocjalizacja", "Teologia"]
+            return ["Psychologia", "Socjologia", "Pedagogika", "Praca socjalna", "Politologia", "Nauki o rodzinie", "Resocjalizacja", "Teologia", "Stosunki międzynarodowe"]
         case "Rolnictwo i Środowisko":
-            return ["Rolnictwo", "Leśnictwo", "Ochrona środowiska", "Biologia", "Biotechnologia", "Weterynaria", "Ogrodnictwo", "Zootechnika"]
+            return ["Rolnictwo", "Leśnictwo", "Ochrona środowiska", "Biologia", "Biotechnologia", "Weterynaria", "Ogrodnictwo", "Zootechnika", "Gastronomia"]
         default:
             return []
         }
@@ -76,13 +78,32 @@ struct CategoryProgramsView: View {
                 } else {
                     // Popular subcategories
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(getPopularSubcategories(), id: \.self) { subcategory in
+                        HStack(spacing: 8) {
+                            // All button
+                            Button(action: {
+                                selectedSubcategory = nil
+                            }) {
                                 SubcategoryChip(
-                                    title: subcategory,
+                                    title: "Wszystkie",
                                     color: categoryColor,
-                                    count: programs.filter { $0.field.contains(subcategory) }.count
+                                    count: allPrograms.count,
+                                    isSelected: selectedSubcategory == nil
                                 )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            ForEach(getPopularSubcategories(), id: \.self) { subcategory in
+                                Button(action: {
+                                    selectedSubcategory = subcategory
+                                }) {
+                                    SubcategoryChip(
+                                        title: subcategory,
+                                        color: categoryColor,
+                                        count: allPrograms.filter { $0.field.contains(subcategory) }.count,
+                                        isSelected: selectedSubcategory == subcategory
+                                    )
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                         .padding(.horizontal)
@@ -90,11 +111,11 @@ struct CategoryProgramsView: View {
                     
                     // Programs list
                     VStack(spacing: 12) {
-                        ForEach(programs) { program in
+                        ForEach(filteredPrograms) { program in
                             ProgramRowCardWithSheet(
                                 program: program,
                                 categoryColor: categoryColor,
-                                university: MockDataService.shared.mockUniversities.first { $0.id == program.universityId }!
+                                university: MockDataService.shared.mockUniversities.first { $0.id == program.universityId } ?? MockDataService.shared.mockUniversities.first!
                             )
                         }
                     }
@@ -110,13 +131,21 @@ struct CategoryProgramsView: View {
         }
     }
     
+    private var filteredPrograms: [StudyProgram] {
+        if let subcategory = selectedSubcategory {
+            return programs.filter { $0.field.contains(subcategory) }
+        } else {
+            return programs
+        }
+    }
+    
     private func loadPrograms() {
         // Simulate loading
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             // In real app, this would filter from database
-            let allPrograms = MockDataService.shared.mockPrograms + generateCategorySpecificPrograms()
+            let allProgramsTemp = MockDataService.shared.mockPrograms + generateCategorySpecificPrograms()
             
-            programs = allPrograms.filter { program in
+            programs = allProgramsTemp.filter { program in
                 categoryFields.contains { field in
                     program.field.lowercased().contains(field.lowercased()) ||
                     program.name.lowercased().contains(field.lowercased())
@@ -133,13 +162,14 @@ struct CategoryProgramsView: View {
                 }
             }
             
+            allPrograms = programs
             isLoading = false
         }
     }
     
     private func getPopularSubcategories() -> [String] {
-        let subcategories = Set(programs.map { $0.field })
-        return Array(subcategories.prefix(5)).sorted()
+        let subcategories = Set(allPrograms.map { $0.field })
+        return Array(subcategories).sorted()
     }
     
     private func generateCategorySpecificPrograms() -> [StudyProgram] {
@@ -211,18 +241,28 @@ struct CategoryProgramsView: View {
                     language: "Polski",
                     description: "Projektowanie graficzne i ilustracja",
                     requirements: AdmissionRequirements(
-                        description: "Rekrutacja na podstawie wyników matury z WF-u oraz testów sprawnościowych",
-                        formula: "W = 0.5 * WF + 0.3 * BIO + 0.2 * J.POL",
-                        minimumPoints: 70,
-                        additionalExams: ["Test sprawności fizycznej"],
-                        documents: ["Świadectwo maturalne", "Zaświadczenie lekarskie"],
+                        description: "Rekrutacja na podstawie portfolio oraz egzaminu wstępnego z rysunku i kompozycji",
+                        formula: "",
+                        minimumPoints: nil,
+                        additionalExams: ["Egzamin z rysunku", "Egzamin z kompozycji", "Przegląd portfolio"],
+                        documents: ["Świadectwo maturalne", "Portfolio prac", "List motywacyjny"],
                         deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90),
-                        admissionType: .mixed,
-                        entranceExamDetails: nil
+                        admissionType: .portfolio,
+                        entranceExamDetails: EntranceExamDetails(
+                            examType: "Egzamin praktyczny z portfolio",
+                            stages: [
+                                "Etap 1: Przegląd portfolio (15-20 prac)",
+                                "Etap 2: Egzamin praktyczny z rysunku",
+                                "Etap 3: Egzamin z kompozycji i koloru"
+                            ],
+                            description: "Trzydniowy egzamin praktyczny sprawdzający umiejętności artystyczne",
+                            sampleTasksURL: nil,
+                            preparationTips: "Przygotuj różnorodne portfolio pokazujące zakres umiejętności"
+                        )
                     ),
                     tuitionFee: 0,
                     availableSlots: 40,
-                    lastYearThreshold: 80.0,
+                    lastYearThreshold: nil,
                     tags: ["Ilustracja", "Typografia", "Branding"]
                 )
             ]
@@ -236,19 +276,21 @@ struct SubcategoryChip: View {
     let title: String
     let color: Color
     let count: Int
+    var isSelected: Bool = false
     
     var body: some View {
-        VStack(spacing: 4) {
+        HStack(spacing: 4) {
             Text(title)
                 .font(.subheadline)
-                .fontWeight(.medium)
-            Text("\(count)")
+                .fontWeight(isSelected ? .semibold : .medium)
+            Text("(\(count))")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .fontWeight(.medium)
         }
+        .foregroundColor(isSelected ? .white : color)
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(color.opacity(0.1))
+        .background(isSelected ? color : color.opacity(0.1))
         .cornerRadius(20)
     }
 }
@@ -338,7 +380,7 @@ struct ProgramRowCard: View {
                 .fill(categoryColor.opacity(0.1))
                 .frame(width: 60, height: 60)
                 .overlay(
-                    Text(MockDataService.shared.mockUniversities.first { $0.id == program.universityId }?.shortName ?? "")
+                    Text(MockDataService.shared.mockUniversities.first { $0.id == program.universityId }?.shortName ?? "?")
                         .font(.caption)
                         .fontWeight(.bold)
                         .foregroundColor(categoryColor)

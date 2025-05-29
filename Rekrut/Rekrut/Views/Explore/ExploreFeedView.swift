@@ -16,6 +16,9 @@ struct ExploreFeedView: View {
     @State private var selectedMode: StudyMode? = nil
     @State private var selectedCity: String? = nil
     @State private var selectedDegree: Degree? = nil
+    @State private var showingAllUniversities = false
+    @State private var showingCityDetail = false
+    @State private var selectedCityDetail: CityInfo?
     @StateObject private var firebaseService = FirebaseService.shared
     
     private let mockData = MockDataService.shared
@@ -164,15 +167,48 @@ struct ExploreFeedView: View {
                 icon: "building.columns.fill",
                 actionText: "Zobacz ranking",
                 action: { 
-                    // TODO: Navigate to full university ranking
+                    showingAllUniversities = true
                 }
             )
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(universities.filter { $0.ranking != nil }.sorted { ($0.ranking ?? 0) < ($1.ranking ?? 0) }.prefix(5)) { university in
+                    // Show top 10 universities sorted by ranking
+                    ForEach(universities.filter { $0.ranking != nil }.sorted { ($0.ranking ?? 0) < ($1.ranking ?? 0) }.prefix(10)) { university in
                         MinimalistUniversityCardWithSheet(university: university)
                     }
+                    
+                    // "See all universities" card
+                    NavigationLink(destination: UniversityListView()) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(LinearGradient(
+                                    gradient: Gradient(colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.1)]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ))
+                                .frame(width: 140, height: 140)
+                            
+                            VStack(spacing: 8) {
+                                Image(systemName: "arrow.right.circle.fill")
+                                    .font(.largeTitle)
+                                    .foregroundColor(.blue)
+                                
+                                Text("Zobacz wszystkie")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
+                                    .multilineTextAlignment(.center)
+                                
+                                Text("uczelnie")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 5)
@@ -194,8 +230,11 @@ struct ExploreFeedView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(getCityData(), id: \.name) { city in
-                        NavigationLink(destination: Text("Uczelnie w \(city.name)")) {
+                    ForEach(getCityData()) { city in
+                        Button(action: {
+                            selectedCityDetail = city
+                            showingCityDetail = true
+                        }) {
                             ExploreCityCard(city: city)
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -239,6 +278,25 @@ struct ExploreFeedView: View {
         .background(Color.white)
         .onAppear {
             loadData()
+        }
+        .sheet(isPresented: $showingAllUniversities) {
+            NavigationView {
+                UniversityListView()
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Zamknij") {
+                                showingAllUniversities = false
+                            }
+                        }
+                    }
+            }
+        }
+        .sheet(isPresented: $showingCityDetail) {
+            if let city = selectedCityDetail {
+                NavigationView {
+                    CityDetailView(city: city)
+                }
+            }
         }
     }
     

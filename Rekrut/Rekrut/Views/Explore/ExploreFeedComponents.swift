@@ -559,37 +559,54 @@ struct RecommendedProgramCard: View {
 }
 
 struct CategoryGridView: View {
-    let categories = [
-        ("Informatyka i IT", "laptopcomputer", Color.blue, 234),
-        ("Medycyna i Zdrowie", "cross.case.fill", Color.red, 156),
-        ("Biznes i Ekonomia", "chart.line.uptrend.xyaxis", Color.green, 189),
-        ("Prawo i Administracja", "scale.3d", Color.orange, 98),
-        ("Inżynieria i Technika", "gearshape.fill", Color.purple, 267),
-        ("Humanistyka i Języki", "book.fill", Color.pink, 145),
-        ("Sztuka i Design", "paintbrush.fill", Color.indigo, 87),
-        ("Sport i Turystyka", "figure.run", Color.mint, 56),
-        ("Nauki społeczne", "person.3.fill", Color.teal, 123),
-        ("Rolnictwo i Środowisko", "leaf.fill", Color(red: 0.2, green: 0.6, blue: 0.2), 45)
-    ]
+    private let mockData = MockDataService.shared
+    
+    private var categoriesWithCounts: [(name: String, icon: String, color: Color, count: Int)] {
+        let allPrograms = mockData.mockPrograms
+        
+        let categories: [(String, String, Color, [String])] = [
+            ("Informatyka i IT", "laptopcomputer", Color.blue, ["Informatyka", "Cyberbezpieczeństwo", "Data Science", "Sztuczna inteligencja", "Informatyka stosowana"]),
+            ("Medycyna i Zdrowie", "cross.case.fill", Color.red, ["Medycyna", "Farmacja", "Fizjoterapia", "Pielęgniarstwo", "Stomatologia", "Ratownictwo medyczne", "Zdrowie publiczne"]),
+            ("Biznes i Ekonomia", "chart.line.uptrend.xyaxis", Color.green, ["Ekonomia", "Zarządzanie", "Finanse", "Marketing", "Logistyka", "E-business", "Międzynarodowe stosunki gospodarcze"]),
+            ("Prawo i Administracja", "scale.3d", Color.orange, ["Prawo", "Administracja", "Administracja publiczna", "Bezpieczeństwo wewnętrzne", "Kryminologia", "Stosunki międzynarodowe"]),
+            ("Inżynieria i Technika", "gearshape.fill", Color.purple, ["Inżynieria", "Automatyka", "Robotyka", "Mechanika", "Elektronika", "Budownictwo", "Architektura", "Lotnictwo", "Inżynieria środowiska", "Energetyka"]),
+            ("Humanistyka i Języki", "book.fill", Color.pink, ["Filologia", "Historia", "Filozofia", "Kulturoznawstwo", "Lingwistyka", "Przekład", "Dziennikarstwo", "Komunikacja społeczna"]),
+            ("Sztuka i Design", "paintbrush.fill", Color.indigo, ["Sztuka", "Grafika", "Design", "Wzornictwo", "Architektura wnętrz", "Fotografia", "Film", "Muzyka", "Teatr", "Konserwacja dzieł sztuki", "Animacja"]),
+            ("Sport i Turystyka", "figure.run", Color.mint, ["Wychowanie fizyczne", "Sport", "Turystyka", "Rekreacja", "Dietetyka sportowa", "Fizjoterapia sportowa", "Zarządzanie sportem"]),
+            ("Nauki społeczne", "person.3.fill", Color.teal, ["Psychologia", "Socjologia", "Pedagogika", "Praca socjalna", "Politologia", "Nauki o rodzinie", "Resocjalizacja", "Teologia", "Stosunki międzynarodowe"]),
+            ("Rolnictwo i Środowisko", "leaf.fill", Color(red: 0.2, green: 0.6, blue: 0.2), ["Rolnictwo", "Leśnictwo", "Ochrona środowiska", "Biologia", "Biotechnologia", "Weterynaria", "Ogrodnictwo", "Zootechnika", "Gastronomia"])
+        ]
+        
+        return categories.map { category in
+            let count = allPrograms.filter { program in
+                category.3.contains { field in
+                    program.field.lowercased().contains(field.lowercased()) ||
+                    program.name.lowercased().contains(field.lowercased())
+                }
+            }.count
+            
+            return (name: category.0, icon: category.1, color: category.2, count: count)
+        }
+    }
     
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(Array(categories.enumerated()), id: \.element.0) { index, category in
+            ForEach(Array(categoriesWithCounts.enumerated()), id: \.element.name) { index, category in
                 NavigationLink(destination: CategoryProgramsView(
-                    categoryName: category.0,
-                    categoryIcon: category.1,
-                    categoryColor: category.2
+                    categoryName: category.name,
+                    categoryIcon: category.icon,
+                    categoryColor: category.color
                 )) {
                     CategoryListRow(
-                        title: category.0,
-                        icon: category.1,
-                        color: category.2,
-                        programCount: category.3
+                        title: category.name,
+                        icon: category.icon,
+                        color: category.color,
+                        programCount: category.count
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
                 
-                if index < categories.count - 1 {
+                if index < categoriesWithCounts.count - 1 {
                     Divider()
                         .padding(.leading, 72)
                 }
@@ -831,10 +848,11 @@ struct MinimalistUniversityCard: View {
     }
 }
 
-struct CityInfo {
+struct CityInfo: Identifiable {
+    let id = UUID()
     let name: String
     let universityCount: Int
-    let imageURL: String
+    let imageURL: String?
     let color: Color
 }
 
@@ -853,7 +871,8 @@ struct ExploreCityCard: View {
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             // Background - either image or gradient
-            if let url = URL(string: city.imageURL),
+            if let imageURL = city.imageURL,
+               let url = URL(string: imageURL),
                !imageLoadFailed {
                 AsyncImage(url: url) { phase in
                     switch phase {

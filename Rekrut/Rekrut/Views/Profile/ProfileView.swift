@@ -141,12 +141,12 @@ struct UnauthenticatedProfileView: View {
                 Text("Twój Profil")
                     .font(.largeTitle)
                     .fontWeight(.bold)
+                    .multilineTextAlignment(.center)
                 
                 Text("Zaloguj się, aby korzystać\nze wszystkich funkcji")
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal)
             }
             
             // Animated feature display
@@ -170,12 +170,9 @@ struct UnauthenticatedProfileView: View {
                     }
                 }
             }
-            .padding(.horizontal, 40)
             .onAppear {
                 startFeatureAnimation()
             }
-            
-            Spacer()
             
             // Sign in with Apple button - direct integration
             SignInWithAppleButton(
@@ -193,7 +190,7 @@ struct UnauthenticatedProfileView: View {
             .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
             .frame(height: 50)
             .cornerRadius(10)
-            .padding(.horizontal)
+            .padding(.top, 20)
             
             Text("Kontynuuj z Apple ID")
                 .font(.caption)
@@ -201,6 +198,7 @@ struct UnauthenticatedProfileView: View {
             
             Spacer()
         }
+        .padding(.horizontal, 60)
         .navigationTitle("Profil")
         .navigationBarTitleDisplayMode(.inline)
     }

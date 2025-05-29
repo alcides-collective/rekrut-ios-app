@@ -1,196 +1,139 @@
-# Rekrut
+# Rekrut - iOS App for Polish University Applicants
 
-iOS application for university applicants and students in Poland. Designed specifically for Polish high school students preparing for university admission, featuring an innovative scoring system and AI-powered recommendations.
+<p align="center">
+  <img src="https://rekrut.app/logo.png" alt="Rekrut Logo" width="120">
+</p>
 
-## Implementation Status
+<p align="center">
+  <strong>🎓 Your AI-powered university admission assistant for Poland</strong>
+</p>
 
-### ✅ Completed Features
-- **Xcode project** initialized with SwiftUI (iOS 15.0+)
-- **Firebase SDK** integrated (Auth, Core, Database, Firestore, Storage)
-- **MVVM architecture** with clean separation of concerns
-- **Tab-based navigation** with 5 main sections
-- **Polish language UI** throughout the application
-- **Full authentication system** with user profiles and secure login
-- **Animated launch screen** with smooth transitions
-- **Dark mode support** for better viewing experience
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#screenshots">Screenshots</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#contributing">Contributing</a>
+</p>
 
-#### 🎯 Eksploruj (Explore)
-- Compact dropdown filters for study mode, city, and degree level
-- Trending programs with visual cards and Rekrut Score™ indicators
-- Personalized AI recommendations based on user profile
-- Category browsing for different fields of study
-- Top universities section with quick access
-- Smart loading states and smooth animations
+## 📱 About Rekrut
 
-#### 🔍 Szukaj (Search)
-- Intelligent search across programs, universities, and cities
-- Recent searches with persistent storage
-- Popular search suggestions
-- Mixed results display (programs + universities)
-- Real-time search with relevance-based sorting
-- No complex filters - simple and intuitive UX
+Rekrut is an iOS application designed to help Polish high school students navigate the complex university admission process. With personalized recommendations, real-time point calculations, and AI-powered matching, Rekrut makes finding your dream university program simple and stress-free.
 
-#### 🎯 AI Match
-- 5-step personality and preference questionnaire
-- AI-powered program matching with percentage scores
-- Personalized recommendations based on interests and skills
-- Visual progress indicators and smooth transitions
-- Results saved to user profile for future reference
+### 🌟 Key Features
 
-#### 📊 Kalkulator (Calculator)
-- **Interactive visual design** with color-coded progress bars (December 2024)
-- Text input fields for precise score entry
-- All subjects visible without dropdowns or collapsible sections
-- Visual feedback: red (fail), yellow (medium), green (good)
-- Split text rendering: black on white, white on color
-- Colorful emoji on white background, monochrome on colored
-- Support for all mandatory and optional Matura subjects
-- Inspirational quotes for each subject
-- Real-time point calculation
-- Performance optimized without live program matching
+- **🧮 Interactive Matura Calculator** - Visual progress bars show your admission chances in real-time
+- **🤖 AI Match Questionnaire** - Get personalized program recommendations based on your interests and goals
+- **🔍 Smart Search** - Find programs and universities instantly with intelligent search
+- **📊 Dynamic Point Calculation** - Automatic calculation using each university's unique admission formula
+- **🏫 Explore Universities** - Browse top Polish universities with detailed program information
+- **📌 Bookmarks** - Save your favorite programs and track application deadlines
+- **🌍 Erasmus+ Programs** - Discover international exchange opportunities
+- **📈 Rekrut Score™** - Our proprietary 0-100 scoring system for easy comparison
 
-#### 📋 Porównanie (Comparison)
-- Side-by-side comparison of up to 3 study programs
-- Key metrics comparison including Rekrut Score™
-- Visual indicators for better/worse values
-- Detailed requirements and admission info
-
-#### 👤 Profil (Profile)
-- Accessible via top-right navigation button (iOS pattern)
-- User account management and preferences
-- Saved programs and calculation history
-- Logout functionality with proper state cleanup
-
-### 🚧 In Progress
-- Erasmus+ program integration
-- University detail pages with comprehensive information
-- Firebase security rules optimization
-- Production deployment preparation
-
-### 📋 Planned Features
-- Saved programs and favorites synchronization
-- Push notifications for application deadlines
-- Offline mode with cached data
-- Analytics integration for better recommendations
-- Social features for connecting with other applicants
-- PDF export of calculation results
-
-## Key Features
-
-### 🎓 Rekrut Score™ System
-Our proprietary scoring system (0-100) that standardizes admission chances across all Polish universities:
-- **0-70** (Green): Good admission chances
-- **70-85** (Yellow): Moderate competition
-- **85-100** (Red): Highly competitive
-
-The score considers multiple factors including historical thresholds, competition levels, and field-specific adjustments.
-
-### 📱 Core Functionality
-
-- **Eksploruj (Explore)**: Discover trending programs with AI-powered recommendations tailored to your profile
-- **Szukaj (Search)**: Find programs and universities instantly with our intelligent search system
-- **AI Match**: Take a 5-step questionnaire to get personalized program recommendations with match percentages
-- **Kalkulator**: Calculate your Matura points with our space-efficient calculator supporting the new exam system
-- **Porównanie**: Compare up to 3 programs side-by-side with visual indicators for better decision making
-- **Profil**: Manage your account, view saved programs, and track your application journey
-
-### 🌟 Recent Updates (January 2025 - v0.0.3)
-- **Redesigned**: AI Match with stable grid layout and consolidated steps
-- **New**: City picker sheet for "Close to home" location selection
-- **Updated**: Blue color scheme throughout AI Match (replaced purple)
-- **Improved**: Left-aligned questions in hero sections with larger font
-- **Fixed**: Removed animations to eliminate panel flickering
-- **Added**: Polish hint text for multi-select questions
-
-### Previous Updates (December 2024)
-- **New**: Interactive Matura calculator with visual progress bars
-- **New**: Sheet-based navigation for all detail views
-- **Updated**: Text input fields replace picker wheels in calculator
-- **Updated**: Performance optimizations throughout the app
-- **Removed**: Live program matching from calculator (performance)
-- **New**: Smart search with recent searches and suggestions
-- **New**: Erasmus+ program integration (coming soon)
-
-## Setup and Run
+## 🚀 Getting Started
 
 ### Prerequisites
-- Xcode 15 or later
-- iOS 15.0+ device or simulator
-- Firebase project with `GoogleService-Info.plist`
 
-### Installation Steps
+- macOS 11.0 or later
+- Xcode 13.0 or later
+- iOS 15.0+ deployment target
+- CocoaPods or Swift Package Manager
 
-1. Clone the repository
+### Installation
+
+1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/rekrut.git
-cd rekrut
+git clone git@github.com:alcides-collective/rekrut-ios-app.git
+cd rekrut-ios-app
 ```
 
-2. Open the project in Xcode
+2. Open the project in Xcode:
 ```bash
 open Rekrut/Rekrut.xcodeproj
 ```
 
-3. Add Firebase configuration
-   - Download `GoogleService-Info.plist` from Firebase Console
-   - Add it to the Xcode project (drag to project navigator)
-   - Ensure it's added to the Rekrut target
+3. Configure Firebase:
+   - Add your `GoogleService-Info.plist` to the project
+   - Enable Authentication and Firestore in Firebase Console
 
-4. Build and run
+4. Build and run:
    - Select your target device/simulator
-   - Press ⌘+R or click the Run button
+   - Press `Cmd+R` to run
 
-## Project Structure
+## 🛠 Tech Stack
+
+- **Language**: Swift 5
+- **UI Framework**: SwiftUI
+- **Architecture**: MVVM
+- **Backend**: Firebase (Auth, Firestore, Storage)
+- **Authentication**: Sign in with Apple
+- **Minimum iOS**: 15.0
+- **Dependencies**: Firebase SDK
+
+## 📂 Project Structure
 
 ```
 Rekrut/
-├── App/                 # App configuration and entry point
-├── Views/              # SwiftUI views
-│   ├── Explore/        # Feed and discovery
-│   ├── Calculator/     # Matura calculator
-│   ├── Comparison/     # Program comparison
-│   └── Profile/        # User profile
-├── ViewModels/         # Business logic
-├── Models/             # Data models
-├── Services/           # Firebase and API services
-├── Utils/              # Utilities and extensions
-└── Resources/          # Assets and localization
+├── App/                    # App entry point and configuration
+├── Models/                 # Data models (University, StudyProgram, etc.)
+├── Views/                  # SwiftUI views organized by feature
+│   ├── Auth/              # Authentication screens
+│   ├── Calculator/        # Matura calculator
+│   ├── Explore/           # University browsing
+│   ├── Search/            # Smart search
+│   ├── AIMatch/           # AI questionnaire
+│   └── Profile/           # User profile and bookmarks
+├── ViewModels/            # Business logic and state management
+├── Services/              # Firebase, API, and utility services
+└── Resources/             # Assets, fonts, and configuration files
 ```
 
-## Technologies & Architecture
+## 🎨 Design Principles
 
-- **Language**: Swift 5.0+
-- **UI Framework**: SwiftUI (iOS 15.0+)
-- **Backend**: Firebase Suite
-  - Authentication for secure user management
-  - Firestore for university and program data
-  - Realtime Database for user preferences and search history
-  - Storage for images and documents
-- **Architecture**: MVVM with clear separation of concerns
-- **State Management**: Combine + @Published properties
-- **Dependency Management**: Swift Package Manager (SPM)
-- **Design System**: SF Symbols + custom color palette
-- **Minimum iOS**: 15.0 (87% device coverage)
+- **Polish-first UI**: All interface text in Polish
+- **iOS Native Patterns**: Following Apple's Human Interface Guidelines
+- **Compact & Efficient**: Minimizing taps and vertical scrolling
+- **Visual Feedback**: Progress indicators and animations
+- **Accessibility**: VoiceOver support and dynamic type
 
-## Data Sources
+## 🔒 Privacy & Security
 
-- **University Data**: Aggregated from official Polish university websites
-- **Admission Thresholds**: Historical data from the last 3 years
-- **Matura Formulas**: Official recruitment formulas from each university
-- **Erasmus+ Programs**: EU official database (integration pending)
+- **Apple Sign In**: Secure authentication without password management
+- **Data Encryption**: All user data encrypted in transit and at rest
+- **Minimal Permissions**: Only requesting necessary device capabilities
+- **GDPR Compliant**: User data handling follows EU regulations
 
-## Performance & Optimization
+## 🤝 Contributing
 
-- Lazy loading for all list views
-- Image caching for university and program images
-- Offline support for previously viewed content
-- Optimized Firebase queries with proper indexing
-- Smooth animations with explicit timing curves
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
-## Contributing
+### Development Workflow
 
-This project is currently in active development. For more information, visit [rekrut.app](https://rekrut.app).
+1. Create a feature branch from `main`
+2. Make your changes following our code style
+3. Test on iOS 15.0 simulator minimum
+4. Submit a pull request with clear description
 
-## License
+### Code Style
 
-Proprietary - All rights reserved. This is a commercial project.
+- SwiftUI preferred over UIKit
+- MVVM architecture pattern
+- Async/await for asynchronous code
+- Polish for UI text, English for code
+
+## 📄 License
+
+This project is proprietary software. All rights reserved by Alcides Collective.
+
+## 📞 Contact
+
+- **Website**: [rekrut.app](https://rekrut.app)
+- **Email**: support@rekrut.app
+- **Issues**: [GitHub Issues](https://github.com/alcides-collective/rekrut-ios-app/issues)
+
+---
+
+<p align="center">
+  Made with ❤️ for Polish students by <a href="https://alcides.co">Alcides Collective</a>
+</p>

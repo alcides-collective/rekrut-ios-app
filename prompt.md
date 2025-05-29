@@ -1,162 +1,228 @@
-# Rekrut - Polish University Admission Assistant
+# Rekrut - Project Brief
 
-## Project Overview
-Rekrut is a comprehensive iOS application designed specifically for Polish high school students (maturzyści) preparing for university admission. The app features a proprietary Rekrut Score™ system that standardizes admission chances across all Polish universities, making it easy to compare programs despite varying admission formulas.
+## 🎯 Mission Statement
 
-## Target Audience
-- Primary: Polish high school students taking Matura exams
-- Secondary: Gap year students reapplying to universities
-- Future: Current university students (for Erasmus+ programs)
+Create an intuitive iOS application that empowers Polish high school students to make informed university choices by providing personalized recommendations, transparent admission calculations, and comprehensive program information.
 
-## Core Features (Implemented)
+## 👥 Target Audience
 
-### 1. Rekrut Score™ System
-- Proprietary 0-100 scoring that standardizes admission chances
-- Visual indicators: Green (0-70), Yellow (71-85), Red (86-100)
-- Considers historical data, competition levels, and field difficulty
-- Makes comparing different universities intuitive
+### Primary Users
+- **High school students** (ages 17-19) preparing for university admission
+- **Matura exam candidates** needing to calculate their admission points
+- **Parents** helping their children navigate university options
 
-### 2. Eksploruj (Explore) Feed
-- Trending study programs with Rekrut Score indicators
-- AI-powered personalized recommendations
-- Compact dropdown filters (study mode, city, degree level)
-- Category browsing and top universities section
+### User Needs
+- Clear understanding of admission requirements
+- Realistic assessment of acceptance chances
+- Discovery of programs matching their interests
+- Simplified comparison of universities
+- Deadline tracking and reminders
 
-### 3. Inteligentne Wyszukiwanie (Smart Search)
-- Search across programs, universities, cities, and fields
-- Recent searches and popular suggestions
-- Mixed results with relevance-based sorting
-- No complex filters - simple and intuitive
+## 🏗 Core Architecture
 
-### 4. AI Match Questionnaire
-- 5-step personality and preference assessment
-- Generates personalized program recommendations
-- Shows match percentage for each suggestion
-- Results saved to user profile
+### Technical Foundation
+- **Platform**: iOS 15.0+ (iPhone only initially)
+- **Language**: Swift 5 with SwiftUI
+- **Backend**: Firebase ecosystem
+- **Architecture**: MVVM pattern
+- **Authentication**: Sign in with Apple
 
-### 5. Kalkulator Matury (Matura Calculator)
-- Ultra-compact design (60% less vertical space)
-- Supports new Polish Matura exam system
-- Optional extended level fields in collapsible section
-- Real-time validation with pass/fail indicators
-- Smart subject selection for additional subjects
+### Design Philosophy
+- **Polish-first**: All UI text in Polish
+- **Simplicity**: Reduce cognitive load
+- **Visual clarity**: Progress bars and indicators
+- **Native iOS**: Follow Apple HIG
+- **Offline-capable**: Core features work offline
 
-### 6. Porównanie Kierunków (Program Comparison)
-- Compare up to 3 study programs side-by-side
-- Visual indicators for better/worse metrics
-- Includes Rekrut Score, requirements, and duration
-- Helps make informed decisions
+## 🌟 Feature Specifications
 
-### 7. Erasmus+ Integration (Planned)
-- Browse exchange opportunities by country and field
-- Filter by duration and requirements
-- Application deadline notifications
+### 1. Smart Matura Calculator
+**Purpose**: Calculate admission points using each university's unique formula
 
-## Technical Requirements
+**Requirements**:
+- Visual progress bars for each subject
+- Support for basic (P) and extended (R) levels
+- Real-time calculation as user types
+- Color-coded chance indicators
+- Formula transparency
 
-### Technology Stack
-- **Language**: Swift 5.0+
-- **UI Framework**: SwiftUI (iOS 15.0+ for compatibility)
-- **Backend**: Firebase Suite
-  - Authentication for user management
-  - Firestore for university/program data
-  - Realtime Database for preferences
-  - Storage for images
-- **Architecture**: MVVM with Combine
-- **State Management**: @Published properties + ObservableObject
-- **Dependency Management**: Swift Package Manager (SPM)
+### 2. AI Match Questionnaire
+**Purpose**: Recommend programs based on interests and preferences
 
-### Data Structure Changes
-Recent modifications to improve performance and UX:
-- **Removed**: Employment rate data (focus on academics)
-- **Removed**: Required subjects lists (simplified to boolean flags)
-- **Changed**: Duration from years to semesters
-- **Added**: Rekrut Score™ for all programs
-- **Added**: Score history for trend analysis
-- **Optimized**: Separate collections for better query performance
+**Requirements**:
+- 6-step questionnaire flow
+- Grid-based answer selection
+- Location preferences with city picker
+- Skill and interest assessment
+- Personalized results with reasoning
 
-### UI/UX Principles
-- **Polish Language Only**: All UI text in Polish
-- **Compact Design**: Minimize vertical space usage
-- **iOS Native Patterns**: Profile in nav bar, not tab bar
-- **Visual Hierarchy**: Rekrut Score always prominent
-- **Smooth Animations**: 0.3s standard duration
-- **SF Symbols**: Consistent iconography
-- **Dark Mode**: Full support implemented
-- **Accessibility**: VoiceOver and Dynamic Type ready
+### 3. University Explorer
+**Purpose**: Browse and discover university programs
 
-### Key Design Patterns
-- Use `@Published` properties and `ObservableObject` for reactive UI updates
-- Implement proper error handling with user-friendly messages
-- Create reusable components for common UI elements
-- Use Swift's async/await for asynchronous operations
+**Requirements**:
+- Trending and recommended sections
+- Filter by mode, city, degree level
+- University ranking display
+- Program cards with key info
+- Quick bookmark functionality
 
-## Development Approach
+### 4. Intelligent Search
+**Purpose**: Find programs and universities instantly
 
-### Current Implementation Status
-```
-✅ COMPLETED:
-- Full MVVM architecture
-- 5-tab navigation + profile
-- Complete authentication flow
-- Smart search with suggestions
-- Ultra-compact Matura calculator
-- AI Match questionnaire
-- Program comparison view
-- Explore feed with filters
-- Dark mode support
-- Polish UI throughout
+**Requirements**:
+- Search across all data fields
+- Recent searches persistence
+- Mixed results (programs + universities)
+- Relevance-based sorting
+- No complex filter UI
 
-🚧 IN PROGRESS:
-- Erasmus+ integration
-- University detail pages
-- Push notifications
-- Offline mode
+### 5. Program Comparison
+**Purpose**: Compare programs side-by-side
 
-📋 BACKLOG:
-- Social features
-- PDF export
-- Analytics dashboard
-```
+**Requirements**:
+- Add up to 3 programs
+- Compare requirements, thresholds, deadlines
+- Visual difference highlighting
+- Export comparison results
+- Save comparison sets
 
-### Testing Strategy
-- Focus on unit tests for critical business logic (Matura calculations, AI matching algorithms)
-- Use XCTest framework for testing
-- Implement UI tests for key user flows
+### 6. User Profile
+**Purpose**: Personalized experience and saved data
 
-### Security Considerations
-- Implement proper Firebase security rules
-- Store sensitive user data securely
-- Use App Transport Security (ATS) for all network communications
-- Implement proper user authentication (consider Firebase Auth)
+**Requirements**:
+- Apple Sign In integration
+- Bookmarked programs
+- Matura scores storage
+- Preference settings
+- Application tracking
 
-## Deployment
-- Target iOS 15.0 or later for modern SwiftUI features
-- Prepare for App Store submission following Apple's guidelines
-- Implement proper app metadata and screenshots
-- Consider implementing analytics for user behavior tracking
+## 📊 Data Management
 
-## Key Development Guidelines
+### University Data
+- Complete Polish university database
+- Current year admission thresholds
+- Historical admission data (3 years)
+- Program descriptions and requirements
+- Contact information and deadlines
 
-### Polish Language Requirements
-- ALL user-facing text must be in Polish
-- No English in the UI (code comments in English are OK)
-- Use proper Polish grammar and terminology
+### User Data
+- Secure authentication tokens
+- Encrypted personal information
+- Local storage for offline access
+- Cloud sync for multi-device
+- GDPR compliance
 
-### Performance Requirements
-- App launch: < 2 seconds
-- Search results: < 500ms
-- Smooth 60 FPS animations
-- Lazy loading for all lists
-- Image caching implemented
+## 🎨 UI/UX Guidelines
 
-### iOS 15.0 Compatibility
-- Avoid iOS 16+ APIs
-- Use .fontWeight() instead of .bold() modifier
-- Test on iOS 15.0 simulator regularly
+### Visual Design
+- **Color Scheme**: Blue primary, system colors
+- **Typography**: SF Pro Display/Text
+- **Spacing**: 8pt grid system
+- **Icons**: SF Symbols
+- **Animations**: Subtle, < 0.3s
 
-### Current Focus
-- Polish university applicants only
-- Matura exam system
-- Undergraduate programs (licencjat, inżynierskie)
-- Major Polish cities
+### Interaction Patterns
+- Sheet presentations for details
+- Swipe actions for quick tasks
+- Pull-to-refresh for updates
+- Haptic feedback for actions
+- Loading states for all async operations
+
+### Accessibility
+- VoiceOver support throughout
+- Dynamic Type compliance
+- High contrast mode
+- Reduced motion support
+- Clear touch targets (44pt minimum)
+
+## 🚀 Development Priorities
+
+### Phase 1: MVP (Months 1-2)
+1. Core data models and architecture
+2. Authentication flow
+3. Basic calculator functionality
+4. Simple program browsing
+5. Mock data for testing
+
+### Phase 2: Enhancement (Months 2-3)
+1. AI Match questionnaire
+2. Smart search implementation
+3. Program comparison
+4. User profiles and bookmarks
+5. Real university data
+
+### Phase 3: Polish (Months 3-4)
+1. Performance optimization
+2. Offline functionality
+3. Push notifications
+4. Analytics integration
+5. App Store preparation
+
+## 📈 Success Metrics
+
+### User Engagement
+- Daily active users (DAU)
+- Session duration
+- Feature adoption rates
+- Bookmark/save rates
+- Search queries per session
+
+### Business Metrics
+- App Store rating (target: 4.5+)
+- User retention (7-day: 80%+)
+- Organic growth rate
+- Support ticket volume
+- Crash-free rate (99.5%+)
+
+## 🔒 Security & Privacy
+
+### Requirements
+- No password storage (Apple Sign In only)
+- Encrypted data transmission
+- Secure local storage
+- Minimal data collection
+- Clear privacy policy
+
+### Compliance
+- GDPR for EU users
+- COPPA for younger users
+- App Store privacy requirements
+- Polish data protection laws
+- Educational data regulations
+
+## 💡 Future Considerations
+
+### Version 2.0
+- iPad and Mac support
+- University virtual tours
+- Student reviews/ratings
+- Direct application submission
+- Scholarship finder
+
+### Version 3.0
+- AI chat assistant
+- AR campus tours
+- Study buddy matching
+- Career path predictions
+- International programs
+
+## 🤝 Stakeholder Notes
+
+### For Students
+"Make university selection stress-free and transparent"
+
+### For Parents
+"Understand and support your child's education journey"
+
+### For Universities
+"Connect with qualified, interested candidates"
+
+### For Developers
+"Build a maintainable, scalable, delightful app"
+
+---
+
+**Project Start**: December 2024
+**Target Launch**: March 2025
+**Platform**: iOS (iPhone)
+**Market**: Poland

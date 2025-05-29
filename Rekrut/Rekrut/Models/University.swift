@@ -37,7 +37,8 @@ enum UniversityType: String, Codable, CaseIterable {
     case medical = "Medyczna"
     case agricultural = "Rolnicza"
     case pedagogical = "Pedagogiczna"
-    case arts = "Artystyczna"
+    case art = "Artystyczna"
+    case sport = "Sportowa"
     case military = "Wojskowa"
     case other = "Inna"
 }
