@@ -46,4 +46,23 @@ struct AdmissionRequirements: Codable {
     var additionalExams: [String]
     var documents: [String]
     var deadlineDate: Date?
+    var admissionType: AdmissionType
+    var entranceExamDetails: EntranceExamDetails?
+}
+
+enum AdmissionType: String, Codable {
+    case maturaPoints = "Punkty maturalne" // Standard matura points
+    case entranceExam = "Egzamin wstępny" // Entrance exam required
+    case portfolio = "Portfolio" // Portfolio submission
+    case mixed = "Matura + egzamin" // Both matura and exam
+    case interview = "Rozmowa kwalifikacyjna" // Interview based
+    case unknown = "Brak danych" // No data available
+}
+
+struct EntranceExamDetails: Codable {
+    var examType: String // e.g., "Egzamin praktyczny", "Test wiedzy", "Przesłuchanie"
+    var stages: [String] // e.g., ["Etap I: Portfolio", "Etap II: Egzamin praktyczny", "Etap III: Rozmowa"]
+    var description: String // Detailed description of the exam
+    var sampleTasksURL: String? // Link to sample exam tasks
+    var preparationTips: String? // Tips for preparation
 }

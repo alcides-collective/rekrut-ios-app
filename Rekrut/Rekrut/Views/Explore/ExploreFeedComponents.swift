@@ -33,6 +33,7 @@ struct TrendingProgramCard: View {
     @State private var imageLoadFailed = false
     @State private var showingDetail = false
     @StateObject private var firebaseService = FirebaseService.shared
+    @StateObject private var localStorage = LocalStorageService.shared
     
     private var isSaved: Bool {
         firebaseService.currentUser?.savedPrograms.contains(program.id) ?? false
@@ -40,16 +41,24 @@ struct TrendingProgramCard: View {
     
     // Calculate user's progress based on their matura scores
     private var userProgress: Double? {
-        guard let threshold = program.lastYearThreshold,
-              let user = firebaseService.currentUser,
-              let maturaScores = user.maturaScores,
-              hasEnteredScores(maturaScores) else {
+        // Get matura scores from Firebase or local storage
+        var maturaScores: MaturaScores? = nil
+        
+        if let user = firebaseService.currentUser,
+           let userScores = user.maturaScores {
+            maturaScores = userScores
+        } else {
+            // Try local storage if not logged in - now reactive!
+            maturaScores = localStorage.maturaScores
+        }
+        
+        guard let scores = maturaScores,
+              hasEnteredScores(scores) else {
             return nil
         }
         
-        // Simple calculation - in real app this would use program's formula
-        let userPoints = calculateUserPoints(maturaScores: maturaScores)
-        return userPoints / threshold
+        // Use the program's extension method for proper formula-based calculation
+        return program.calculateProgress(maturaScores: scores)
     }
     
     private func hasEnteredScores(_ maturaScores: MaturaScores) -> Bool {
@@ -66,14 +75,6 @@ struct TrendingProgramCard: View {
                maturaScores.biology != nil
     }
     
-    private func calculateUserPoints(maturaScores: MaturaScores) -> Double {
-        // Simplified calculation - in real app would use program-specific formula
-        var total = 0.0
-        if let math = maturaScores.mathematics { total += Double(math) }
-        if let polish = maturaScores.polish { total += Double(polish) }
-        if let foreign = maturaScores.foreignLanguage { total += Double(foreign) }
-        return total / 3.0 // Average for simplicity
-    }
     
     private var backgroundGradient: LinearGradient {
         let colors: [Color] = [.blue, .purple, .green, .orange, .pink].shuffled()
@@ -133,8 +134,15 @@ struct TrendingProgramCard: View {
                 }
                 
                 // Content overlay
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 4) {
                     Spacer()
+                    
+                    // Degree type in small text above title
+                    Text(program.degree.rawValue)
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white.opacity(0.8))
+                        .textCase(.uppercase)
                     
                     Text(program.name)
                         .font(.body)
@@ -176,16 +184,6 @@ struct TrendingProgramCard: View {
                             .background(Circle().fill(Color.black.opacity(0.5)))
                     }
                     
-                    // Degree type pill
-                    Text(program.degree == .engineer ? "inż." : program.degree == .bachelor ? "lic." : program.degree == .master ? "mgr" : "mgr")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.white.opacity(0.9))
-                        .foregroundColor(.black.opacity(0.8))
-                        .cornerRadius(12)
-                    
                     // Score indicator with progress
                     if let threshold = program.lastYearThreshold {
                         HStack(spacing: 4) {
@@ -194,21 +192,24 @@ struct TrendingProgramCard: View {
                                 .frame(width: 8, height: 8)
                             
                             // Show +X% if user is above threshold, otherwise show appropriate text
-                            if let progress = userProgress, progress > 1.0 {
-                                Text("+\(Int((progress - 1.0) * 100))%")
-                                    .font(.caption)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.green)
-                            } else if userProgress == nil {
+                            if let progress = userProgress {
+                                if progress > 1.0 {
+                                    Text("+\(Int((progress - 1.0) * 100))%")
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.green)
+                                } else {
+                                    Text("\(Int(progress * 100))%")
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(getProgressColor())
+                                }
+                            } else {
                                 // User hasn't entered matura scores
                                 Text("Wprowadź maturę")
                                     .font(.caption)
                                     .fontWeight(.medium)
                                     .foregroundColor(.gray)
-                            } else {
-                                Text("\(Int(threshold))")
-                                    .font(.caption)
-                                    .fontWeight(.semibold)
                             }
                         }
                         .padding(.horizontal, 8)
@@ -216,15 +217,19 @@ struct TrendingProgramCard: View {
                         .background(Color.white.opacity(0.9))
                         .cornerRadius(12)
                     } else {
-                        // Fallback for missing threshold
-                        Text("Brak danych")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.gray.opacity(0.7))
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
+                        // Show admission type for programs without threshold
+                        HStack(spacing: 4) {
+                            Image(systemName: getAdmissionTypeIcon())
+                                .font(.caption2)
+                            Text(getAdmissionTypeText())
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(getAdmissionTypeColor().opacity(0.9))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
                     }
                 }
                 .padding(.top, 12)
@@ -279,6 +284,57 @@ struct TrendingProgramCard: View {
         // Gray color if no user data entered
         return .gray
     }
+    
+    private func getAdmissionTypeIcon() -> String {
+        switch program.requirements.admissionType {
+        case .entranceExam:
+            return "pencil.and.list.clipboard"
+        case .portfolio:
+            return "photo.stack"
+        case .mixed:
+            return "square.split.2x1"
+        case .interview:
+            return "person.2.wave.2"
+        case .unknown:
+            return "questionmark.circle"
+        case .maturaPoints:
+            return "info.circle"
+        }
+    }
+    
+    private func getAdmissionTypeText() -> String {
+        switch program.requirements.admissionType {
+        case .entranceExam:
+            return "Egzamin"
+        case .portfolio:
+            return "Portfolio"
+        case .mixed:
+            return "Matura+Egzamin"
+        case .interview:
+            return "Rozmowa"
+        case .unknown:
+            return "Brak danych"
+        case .maturaPoints:
+            return "Brak progu"
+        }
+    }
+    
+    private func getAdmissionTypeColor() -> Color {
+        switch program.requirements.admissionType {
+        case .entranceExam:
+            return .purple
+        case .portfolio:
+            return .indigo
+        case .mixed:
+            return .blue
+        case .interview:
+            return .green
+        case .unknown:
+            return .gray
+        case .maturaPoints:
+            return .orange
+        }
+    }
 }
 
 struct RecommendedProgramCard: View {
@@ -286,6 +342,7 @@ struct RecommendedProgramCard: View {
     let university: University?
     @State private var showingDetail = false
     @StateObject private var firebaseService = FirebaseService.shared
+    @StateObject private var localStorage = LocalStorageService.shared
     
     private var isSaved: Bool {
         firebaseService.currentUser?.savedPrograms.contains(program.id) ?? false
@@ -293,16 +350,24 @@ struct RecommendedProgramCard: View {
     
     // Calculate user's progress based on their matura scores
     private var userProgress: Double? {
-        guard let threshold = program.lastYearThreshold,
-              let user = firebaseService.currentUser,
-              let maturaScores = user.maturaScores,
-              hasEnteredScores(maturaScores) else {
+        // Get matura scores from Firebase or local storage
+        var maturaScores: MaturaScores? = nil
+        
+        if let user = firebaseService.currentUser,
+           let userScores = user.maturaScores {
+            maturaScores = userScores
+        } else {
+            // Try local storage if not logged in - now reactive!
+            maturaScores = localStorage.maturaScores
+        }
+        
+        guard let scores = maturaScores,
+              hasEnteredScores(scores) else {
             return nil
         }
         
-        // Simple calculation - in real app this would use program's formula
-        let userPoints = calculateUserPoints(maturaScores: maturaScores)
-        return userPoints / threshold
+        // Use the program's extension method for proper formula-based calculation
+        return program.calculateProgress(maturaScores: scores)
     }
     
     private func hasEnteredScores(_ maturaScores: MaturaScores) -> Bool {
@@ -319,14 +384,6 @@ struct RecommendedProgramCard: View {
                maturaScores.biology != nil
     }
     
-    private func calculateUserPoints(maturaScores: MaturaScores) -> Double {
-        // Simplified calculation - in real app would use program-specific formula
-        var total = 0.0
-        if let math = maturaScores.mathematics { total += Double(math) }
-        if let polish = maturaScores.polish { total += Double(polish) }
-        if let foreign = maturaScores.foreignLanguage { total += Double(foreign) }
-        return total / 3.0 // Average for simplicity
-    }
     
     var body: some View {
         Button(action: {
@@ -348,12 +405,19 @@ struct RecommendedProgramCard: View {
                         .foregroundColor(.white)
                 }
                 
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 4) {
+                    // Degree type in small text above title
+                    Text(program.degree.rawValue)
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
+                        .textCase(.uppercase)
+                    
                     Text(program.name)
                         .font(.headline)
                         .foregroundColor(.primary)
                     
-                    Text("\(university?.displayName ?? "") • \(program.degree.rawValue)")
+                    Text(university?.displayName ?? "")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
@@ -387,9 +451,10 @@ struct RecommendedProgramCard: View {
                                 }
                             }
                         } else {
-                            Label("Brak danych", systemImage: "questionmark.circle")
+                            // Show admission type
+                            Label(getAdmissionTypeShortText(), systemImage: getAdmissionTypeIcon())
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundColor(getAdmissionTypeColor())
                         }
                     }
                 }
@@ -439,6 +504,57 @@ struct RecommendedProgramCard: View {
         }
         // Gray color if no user data entered
         return .gray
+    }
+    
+    private func getAdmissionTypeIcon() -> String {
+        switch program.requirements.admissionType {
+        case .entranceExam:
+            return "pencil.and.list.clipboard"
+        case .portfolio:
+            return "photo.stack"
+        case .mixed:
+            return "square.split.2x1"
+        case .interview:
+            return "person.2.wave.2"
+        case .unknown:
+            return "questionmark.circle"
+        case .maturaPoints:
+            return "info.circle"
+        }
+    }
+    
+    private func getAdmissionTypeShortText() -> String {
+        switch program.requirements.admissionType {
+        case .entranceExam:
+            return "Egzamin"
+        case .portfolio:
+            return "Portfolio"
+        case .mixed:
+            return "Matura+Egzamin"
+        case .interview:
+            return "Rozmowa"
+        case .unknown:
+            return "Brak danych"
+        case .maturaPoints:
+            return "Brak progu"
+        }
+    }
+    
+    private func getAdmissionTypeColor() -> Color {
+        switch program.requirements.admissionType {
+        case .entranceExam:
+            return .purple
+        case .portfolio:
+            return .indigo
+        case .mixed:
+            return .blue
+        case .interview:
+            return .green
+        case .unknown:
+            return .gray
+        case .maturaPoints:
+            return .orange
+        }
     }
 }
 

@@ -11,7 +11,9 @@ import UIKit
 struct InteractiveMaturaView: View {
     @State private var basicScores: [String: Double] = [:]
     @State private var extendedScores: [String: Double] = [:]
-    @State private var totalPoints: Double = 0
+    @StateObject private var firebaseService = FirebaseService.shared
+    @State private var saveTimer: Timer?
+    private let localStorage = LocalStorageService.shared
     
     // Przedmioty obowiązkowe (podstawowy + opcjonalnie rozszerzony)
     let mandatorySubjects = [
@@ -64,11 +66,6 @@ struct InteractiveMaturaView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                // Simple header with points
-                SimpleMaturaHeader(
-                    totalPoints: totalPoints
-                )
-                
                 // Basic level section
                 VStack(alignment: .leading, spacing: 8) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -88,7 +85,7 @@ struct InteractiveMaturaView: View {
                                     get: { basicScores[subject.id] ?? 0 },
                                     set: { newValue in
                                         basicScores[subject.id] = newValue
-                                        calculateResults()
+                                        saveScoresToFirebase()
                                     }
                                 ),
                                 isExtended: false
@@ -117,7 +114,7 @@ struct InteractiveMaturaView: View {
                                     get: { extendedScores[subject.id] ?? 0 },
                                     set: { newValue in
                                         extendedScores[subject.id] = newValue
-                                        calculateResults()
+                                        saveScoresToFirebase()
                                     }
                                 ),
                                 isExtended: true
@@ -132,7 +129,7 @@ struct InteractiveMaturaView: View {
                                     get: { extendedScores[subject.id] ?? 0 },
                                     set: { newValue in
                                         extendedScores[subject.id] = newValue
-                                        calculateResults()
+                                        saveScoresToFirebase()
                                     }
                                 ),
                                 isExtended: true,
@@ -151,8 +148,8 @@ struct InteractiveMaturaView: View {
         .navigationTitle("Kalkulator Maturalny")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            loadExistingScores()
             initializeScores()
-            calculateResults()
         }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
@@ -173,28 +170,94 @@ struct InteractiveMaturaView: View {
         }
     }
     
-    private func calculateResults() {
-        var points = 0.0
+    private func loadExistingScores() {
+        // Try to load from Firebase first if user is logged in
+        var maturaScores: MaturaScores? = nil
         
-        // Basic level calculation
-        for subject in mandatorySubjects {
-            points += (basicScores[subject.id] ?? 0) * 0.1
+        if let user = firebaseService.currentUser,
+           let userScores = user.maturaScores {
+            maturaScores = userScores
+        } else {
+            // Fall back to local storage
+            maturaScores = localStorage.loadMaturaScores()
         }
         
-        // Extended level calculation
-        for subject in mandatorySubjects {
-            let multiplier = subject.id == "math" ? 0.35 : 0.3
-            points += (extendedScores[subject.id] ?? 0) * multiplier
-        }
+        guard let scores = maturaScores else { return }
         
-        // Best additional subject (highest score)
-        var bestAdditionalScore = 0.0
-        for subject in additionalSubjects {
-            bestAdditionalScore = max(bestAdditionalScore, extendedScores[subject.id] ?? 0)
-        }
-        points += bestAdditionalScore * 0.2
+        // Load basic scores
+        if let score = scores.polishBasic { basicScores["polish"] = Double(score) }
+        if let score = scores.mathematicsBasic { basicScores["math"] = Double(score) }
+        if let score = scores.foreignLanguageBasic { basicScores["foreign"] = Double(score) }
         
-        totalPoints = points
+        // Load extended scores
+        if let score = scores.polish { extendedScores["polish"] = Double(score) }
+        if let score = scores.mathematics { extendedScores["math"] = Double(score) }
+        if let score = scores.foreignLanguage { extendedScores["foreign"] = Double(score) }
+        if let score = scores.physics { extendedScores["phys"] = Double(score) }
+        if let score = scores.chemistry { extendedScores["chem"] = Double(score) }
+        if let score = scores.biology { extendedScores["bio"] = Double(score) }
+        if let score = scores.computerScience { extendedScores["info"] = Double(score) }
+        if let score = scores.history { extendedScores["hist"] = Double(score) }
+        if let score = scores.geography { extendedScores["geo"] = Double(score) }
+        if let score = scores.socialStudies { extendedScores["wos"] = Double(score) }
+        if let score = scores.philosophy { extendedScores["filo"] = Double(score) }
+    }
+    
+    private func saveScoresToFirebase() {
+        // Cancel existing timer
+        saveTimer?.invalidate()
+        
+        // Create new timer to save after 0.5 seconds of no changes
+        saveTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
+            Task { @MainActor in
+                await self.performSave()
+            }
+        }
+    }
+    
+    private func performSave() async {
+        var maturaScores = MaturaScores()
+        
+        // Save basic scores
+        maturaScores.polishBasic = basicScores["polish"].map { Int($0) }
+        maturaScores.mathematicsBasic = basicScores["math"].map { Int($0) }
+        maturaScores.foreignLanguageBasic = basicScores["foreign"].map { Int($0) }
+        
+        // Save extended scores
+        maturaScores.polish = extendedScores["polish"].map { Int($0) }
+        maturaScores.mathematics = extendedScores["math"].map { Int($0) }
+        maturaScores.foreignLanguage = extendedScores["foreign"].map { Int($0) }
+        maturaScores.physics = extendedScores["phys"].map { Int($0) }
+        maturaScores.chemistry = extendedScores["chem"].map { Int($0) }
+        maturaScores.biology = extendedScores["bio"].map { Int($0) }
+        maturaScores.computerScience = extendedScores["info"].map { Int($0) }
+        maturaScores.history = extendedScores["hist"].map { Int($0) }
+        maturaScores.geography = extendedScores["geo"].map { Int($0) }
+        maturaScores.socialStudies = extendedScores["wos"].map { Int($0) }
+        maturaScores.philosophy = extendedScores["filo"].map { Int($0) }
+        
+        print("DEBUG: Saving matura scores:")
+        print("  Polish Basic: \(maturaScores.polishBasic ?? -1)")
+        print("  Math Basic: \(maturaScores.mathematicsBasic ?? -1)")
+        print("  Polish Extended: \(maturaScores.polish ?? -1)")
+        print("  Math Extended: \(maturaScores.mathematics ?? -1)")
+        
+        // Always save to local storage
+        localStorage.saveMaturaScores(maturaScores)
+        
+        // If user is logged in, also save to Firebase
+        if var user = firebaseService.currentUser {
+            user.maturaScores = maturaScores
+            
+            do {
+                try await firebaseService.updateUser(user)
+                print("DEBUG: Successfully saved matura scores to Firebase")
+            } catch {
+                print("ERROR: Failed to save matura scores to Firebase: \(error)")
+            }
+        } else {
+            print("DEBUG: User not logged in, saved to local storage only")
+        }
     }
 }
 
@@ -397,30 +460,6 @@ struct CardStyleSlider: View {
         }
     }
 }
-
-// Removed SimplifiedAdditionalSubject as subjects are now listed directly
-
-struct SimpleMaturaHeader: View {
-    let totalPoints: Double
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            Text("\(Int(totalPoints))")
-                .font(.system(size: 48, weight: .bold))
-                .foregroundColor(.blue)
-            
-            Text("punktów rekrutacyjnych")
-                .font(.subheadline)
-                .foregroundColor(.gray)
-        }
-        .padding()
-        .frame(maxWidth: .infinity)
-        .background(Color.white)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-    }
-}
-
 
 #Preview {
     NavigationView {

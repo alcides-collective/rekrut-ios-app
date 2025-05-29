@@ -134,6 +134,14 @@ Rekrut/
 
 ## Recent Changes & Patterns
 
+### AI Match Questionnaire Redesign (January 2025)
+- **Grid-based Layout**: Stable 2-column grid replacing vertical lists
+- **Consolidated Steps**: Reduced from 11 to 6 steps (skills on 1 screen)
+- **City Selection**: Dynamic sheet for "Blisko domu" option
+- **Blue Theme**: Consistent with app's primary color (replaced purple)
+- **Performance**: Removed animations to eliminate flickering
+- **Navigation**: All controls in one line (back/steps/next)
+
 ### Authentication System (January 2025)
 - **Apple Sign In Only**: Removed email/password authentication for enhanced security
 - Simplified authentication flow with direct Sign in with Apple button
@@ -182,6 +190,19 @@ Rekrut/
 - Changed formula background to secondarySystemBackground for better contrast
 - Increased progress bar thickness (4→8pt)
 - Added smart progress display: nothing at 100%, percentage below 100%, "+X%" above 100%
+
+### AI Match Questionnaire (v0.0.3 - January 2025)
+- **Stable Grid Layout**: 2-column grid for answer options, single column for skill ratings
+- **Fixed Hero Section**: 200pt height with blue gradient background
+- **Left-aligned Questions**: Larger font (.title) positioned at bottom of hero
+- **Compact Design**: 
+  - Answer panels: 13pt font, left-aligned text, iOS-style shadows
+  - Skill ratings: Single row with 5 stars, no transparency changes
+  - Reduced from 11 to 8 total steps (consolidated skills)
+- **City Picker Sheet**: Appears when "Blisko domu" selected, 25 Polish university cities
+- **Visual Consistency**: Blue color scheme throughout (replaced purple)
+- **Performance**: Removed animations to prevent flickering
+- **Polish UI Elements**: "Możesz wybrać kilka odpowiedzi" shown below multi-select grids
 
 ### Interactive Matura Calculator (v0.0.2 - December 2024)
 - Complete redesign with visual progress bars

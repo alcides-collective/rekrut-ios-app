@@ -77,7 +77,7 @@ struct ProgramDetailView: View {
                     if let threshold = program.lastYearThreshold {
                         AdmissionProgressView(threshold: threshold, applicationURL: program.applicationURL, program: program)
                     } else {
-                        NoThresholdInfoView(applicationURL: program.applicationURL)
+                        NoThresholdInfoView(applicationURL: program.applicationURL, program: program)
                     }
                     
                     // Description
@@ -336,16 +336,27 @@ struct AdmissionProgressView: View {
     let applicationURL: String?
     let program: StudyProgram
     @StateObject private var firebaseService = FirebaseService.shared
+    @StateObject private var localStorage = LocalStorageService.shared
     
     // Calculate user's progress based on their matura scores
     private var userProgress: Double? {
-        guard let user = firebaseService.currentUser,
-              let maturaScores = user.maturaScores,
-              hasEnteredScores(maturaScores) else {
+        // Get matura scores from Firebase or local storage
+        var maturaScores: MaturaScores? = nil
+        
+        if let user = firebaseService.currentUser,
+           let userScores = user.maturaScores {
+            maturaScores = userScores
+        } else {
+            // Try local storage if not logged in - now reactive!
+            maturaScores = localStorage.maturaScores
+        }
+        
+        guard let scores = maturaScores,
+              hasEnteredScores(scores) else {
             return nil
         }
         
-        return program.calculateProgress(maturaScores: maturaScores)
+        return program.calculateProgress(maturaScores: scores)
     }
     
     private func hasEnteredScores(_ maturaScores: MaturaScores) -> Bool {
@@ -631,17 +642,18 @@ struct ProgramTagsView: View {
 
 struct NoThresholdInfoView: View {
     let applicationURL: String?
+    let program: StudyProgram
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Info header
             HStack {
                 HStack(spacing: 8) {
-                    Image(systemName: "info.circle")
+                    Image(systemName: iconForAdmissionType)
                         .font(.subheadline)
-                        .foregroundColor(.orange)
+                        .foregroundColor(colorForAdmissionType)
                     
-                    Text("Brak danych o progu punktowym")
+                    Text(titleForAdmissionType)
                         .font(.subheadline)
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
@@ -667,48 +679,109 @@ struct NoThresholdInfoView: View {
                 }
             }
             
-            // Explanation
-            Text("Próg punktowy dla tego kierunku nie jest jeszcze dostępny. Sprawdź informacje na stronie uczelni lub skontaktuj się z komisją rekrutacyjną.")
+            // Explanation based on admission type
+            Text(explanationForAdmissionType)
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .lineSpacing(3)
                 .fixedSize(horizontal: false, vertical: true)
             
-            // Alternative helpful info
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Co możesz zrobić:")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.primary)
+            // Show entrance exam details if available
+            if program.requirements.admissionType == .entranceExam || 
+               program.requirements.admissionType == .mixed ||
+               program.requirements.admissionType == .portfolio,
+               let examDetails = program.requirements.entranceExamDetails {
                 
-                HStack(spacing: 8) {
-                    Image(systemName: "1.circle.fill")
-                        .font(.caption2)
-                        .foregroundColor(.blue)
-                    Text("Sprawdź wyniki rekrutacji z poprzednich lat na stronie uczelni")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Proces rekrutacji:")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                    
+                    ForEach(Array(examDetails.stages.enumerated()), id: \.offset) { index, stage in
+                        HStack(alignment: .top, spacing: 8) {
+                            Text("\(index + 1).")
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.blue)
+                                .frame(width: 20, alignment: .leading)
+                            
+                            Text(stage)
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    
+                    if let tips = examDetails.preparationTips {
+                        Text("Wskazówki:")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(.primary)
+                            .padding(.top, 4)
+                        
+                        Text(tips)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .italic()
+                    }
+                    
+                    if let sampleURL = examDetails.sampleTasksURL,
+                       let url = URL(string: sampleURL) {
+                        Link(destination: url) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "doc.text")
+                                    .font(.caption)
+                                Text("Przykładowe zadania")
+                                    .font(.caption)
+                                    .underline()
+                            }
+                            .foregroundColor(.blue)
+                        }
+                        .padding(.top, 4)
+                    }
                 }
-                
-                HStack(spacing: 8) {
-                    Image(systemName: "2.circle.fill")
-                        .font(.caption2)
-                        .foregroundColor(.blue)
-                    Text("Użyj kalkulatora punktów, aby oszacować swoje szanse")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                .padding(.top, 8)
+                .padding(12)
+                .background(Color(.tertiarySystemBackground))
+                .cornerRadius(8)
+            } else {
+                // Alternative helpful info for unknown or missing data
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Co możesz zrobić:")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                    
+                    HStack(spacing: 8) {
+                        Image(systemName: "1.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                        Text("Sprawdź wyniki rekrutacji z poprzednich lat na stronie uczelni")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    HStack(spacing: 8) {
+                        Image(systemName: "2.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                        Text("Skontaktuj się z biurem rekrutacji uczelni")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    HStack(spacing: 8) {
+                        Image(systemName: "3.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                        Text("Porównaj z podobnymi kierunkami na tej uczelni")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                 }
-                
-                HStack(spacing: 8) {
-                    Image(systemName: "3.circle.fill")
-                        .font(.caption2)
-                        .foregroundColor(.blue)
-                    Text("Porównaj z podobnymi kierunkami na tej uczelni")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
+                .padding(.top, 4)
             }
-            .padding(.top, 4)
         }
         .padding(20)
         .background(
@@ -716,10 +789,78 @@ struct NoThresholdInfoView: View {
                 .fill(Color(.secondarySystemBackground))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                        .stroke(colorForAdmissionType.opacity(0.3), lineWidth: 1)
                 )
         )
         .padding(.horizontal, 24)
+    }
+    
+    private var iconForAdmissionType: String {
+        switch program.requirements.admissionType {
+        case .entranceExam:
+            return "pencil.and.list.clipboard"
+        case .portfolio:
+            return "photo.stack"
+        case .mixed:
+            return "square.split.2x1"
+        case .interview:
+            return "person.2.wave.2"
+        case .unknown:
+            return "questionmark.circle"
+        case .maturaPoints:
+            return "info.circle"
+        }
+    }
+    
+    private var colorForAdmissionType: Color {
+        switch program.requirements.admissionType {
+        case .entranceExam:
+            return .purple
+        case .portfolio:
+            return .indigo
+        case .mixed:
+            return .blue
+        case .interview:
+            return .green
+        case .unknown:
+            return .gray
+        case .maturaPoints:
+            return .orange
+        }
+    }
+    
+    private var titleForAdmissionType: String {
+        switch program.requirements.admissionType {
+        case .entranceExam:
+            return "Wymagany egzamin wstępny"
+        case .portfolio:
+            return "Rekrutacja na podstawie portfolio"
+        case .mixed:
+            return "Matura + egzamin wstępny"
+        case .interview:
+            return "Rozmowa kwalifikacyjna"
+        case .unknown:
+            return "Brak danych o rekrutacji"
+        case .maturaPoints:
+            return "Brak danych o progu punktowym"
+        }
+    }
+    
+    private var explanationForAdmissionType: String {
+        switch program.requirements.admissionType {
+        case .entranceExam:
+            return "Ten kierunek wymaga zdania egzaminu wstępnego. Punkty maturalne nie są brane pod uwagę lub stanowią tylko część oceny końcowej."
+        case .portfolio:
+            return "Rekrutacja opiera się na ocenie portfolio oraz umiejętności artystycznych kandydata. Przygotuj swoje najlepsze prace."
+        case .mixed:
+            return "Rekrutacja dwuetapowa: najpierw weryfikacja punktów maturalnych, następnie egzamin wstępny lub ocena portfolio."
+        case .interview:
+            return "Kwalifikacja odbywa się na podstawie rozmowy z komisją rekrutacyjną. Przygotuj się na pytania o motywację i doświadczenie."
+        case .unknown:
+            return "Szczegółowe kryteria rekrutacji nie zostały jeszcze opublikowane. Prosimy o regularne sprawdzanie strony uczelni."
+        case .maturaPoints:
+            return "Próg punktowy dla tego kierunku nie jest jeszcze dostępny. Sprawdź informacje na stronie uczelni."
+        }
     }
 }
 

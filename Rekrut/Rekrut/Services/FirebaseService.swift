@@ -65,6 +65,9 @@ class FirebaseService: ObservableObject {
             // Existing user - just fetch their data
             fetchUserData(userId: result.user.uid)
         }
+        
+        // Sync local matura scores to Firebase after sign in
+        await LocalStorageService.shared.syncMaturaScoresWithFirebase()
     }
     
     func signOut() throws {

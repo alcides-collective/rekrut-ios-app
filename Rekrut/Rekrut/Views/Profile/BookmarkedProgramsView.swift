@@ -122,17 +122,29 @@ struct BookmarkedProgramRow: View {
     @State private var showingDetail = false
     @State private var showingRemoveAlert = false
     @StateObject private var firebaseService = FirebaseService.shared
+    @StateObject private var localStorage = LocalStorageService.shared
     
     // Calculate user's progress based on their matura scores
     private var userProgress: Double? {
-        guard program.lastYearThreshold != nil,
-              let user = firebaseService.currentUser,
-              let maturaScores = user.maturaScores,
-              hasEnteredScores(maturaScores) else {
+        guard program.lastYearThreshold != nil else { return nil }
+        
+        // Get matura scores from Firebase or local storage
+        var maturaScores: MaturaScores? = nil
+        
+        if let user = firebaseService.currentUser,
+           let userScores = user.maturaScores {
+            maturaScores = userScores
+        } else {
+            // Try local storage if not logged in - now reactive!
+            maturaScores = localStorage.maturaScores
+        }
+        
+        guard let scores = maturaScores,
+              hasEnteredScores(scores) else {
             return nil
         }
         
-        return program.calculateProgress(maturaScores: maturaScores)
+        return program.calculateProgress(maturaScores: scores)
     }
     
     private func hasEnteredScores(_ maturaScores: MaturaScores) -> Bool {

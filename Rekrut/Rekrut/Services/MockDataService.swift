@@ -128,7 +128,9 @@ class MockDataService {
                 minimumPoints: 80,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne", "Podanie"],
-                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90)
+                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90),
+                admissionType: .maturaPoints,
+                entranceExamDetails: nil
             ),
             tuitionFee: 0,
             availableSlots: 200,
@@ -155,7 +157,9 @@ class MockDataService {
                 minimumPoints: 75,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne", "Podanie"],
-                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90)
+                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90),
+                admissionType: .maturaPoints,
+                entranceExamDetails: nil
             ),
             tuitionFee: 0,
             availableSlots: 300,
@@ -180,7 +184,9 @@ class MockDataService {
                 minimumPoints: 85,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne", "Podanie"],
-                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90)
+                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90),
+                admissionType: .maturaPoints,
+                entranceExamDetails: nil
             ),
             tuitionFee: 0,
             availableSlots: 250,
@@ -205,7 +211,9 @@ class MockDataService {
                 minimumPoints: 90,
                 additionalExams: ["Test predyspozycji"],
                 documents: ["Świadectwo maturalne", "Zaświadczenie lekarskie", "Podanie"],
-                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90)
+                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90),
+                admissionType: .mixed,
+                entranceExamDetails: nil
             ),
             tuitionFee: 0,
             availableSlots: 150,
@@ -229,7 +237,9 @@ class MockDataService {
                 minimumPoints: 70,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne", "Podanie"],
-                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90)
+                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90),
+                admissionType: .maturaPoints,
+                entranceExamDetails: nil
             ),
             tuitionFee: 0,
             availableSlots: 400,
@@ -253,7 +263,9 @@ class MockDataService {
                 minimumPoints: 82,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne", "Podanie"],
-                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90)
+                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90),
+                admissionType: .maturaPoints,
+                entranceExamDetails: nil
             ),
             tuitionFee: 0,
             availableSlots: 180,
@@ -278,12 +290,157 @@ class MockDataService {
                 minimumPoints: nil,
                 additionalExams: ["Rozmowa kwalifikacyjna"],
                 documents: ["Dyplom licencjata", "Suplement do dyplomu", "CV", "List motywacyjny"],
-                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*60)
+                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*60),
+                admissionType: .interview,
+                entranceExamDetails: nil
             ),
             tuitionFee: 0,
             availableSlots: 30,
             lastYearThreshold: nil, // No threshold data available for new program
             tags: ["Neuropsychologia", "Diagnostyka", "Terapia", "Badania mózgu"]
+        ),
+        // Film Directing in Łódź - Entrance Exam Required
+        StudyProgram(
+            id: "lodz-film-directing",
+            universityId: "pw", // Using PW as placeholder for Łódź Film School
+            name: "Reżyseria filmowa",
+            faculty: "Wydział Reżyserii Filmowej i Telewizyjnej",
+            field: "Sztuka",
+            degree: .unified,
+            mode: .stationary,
+            duration: 10,
+            language: "Polski",
+            description: "Prestiżowy kierunek kształcący przyszłych reżyserów filmowych. Program obejmuje warsztaty z technik filmowych, historię kina, scenopisarstwo oraz realizację własnych projektów filmowych. Absolwenci pracują w kinematografii, telewizji i platformach streamingowych.",
+            requirements: AdmissionRequirements(
+                description: "Rekrutacja wieloetapowa obejmująca ocenę portfolio, egzaminy praktyczne i teoretyczne. Kandydaci przesyłają portfolio z własnymi pracami filmowymi lub scenariuszami. Egzamin praktyczny polega na realizacji krótkiej etiudy filmowej. Egzamin teoretyczny sprawdza wiedzę o kinie i kulturze.",
+                formula: "Ocena portfolio (40%) + Egzamin praktyczny (40%) + Egzamin teoretyczny (20%)",
+                minimumPoints: nil,
+                additionalExams: ["Portfolio", "Egzamin praktyczny - realizacja etiudy", "Egzamin teoretyczny z historii kina", "Rozmowa kwalifikacyjna"],
+                documents: ["Świadectwo maturalne", "Portfolio prac", "List motywacyjny", "CV artystyczne"],
+                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*120),
+                admissionType: .entranceExam,
+                entranceExamDetails: EntranceExamDetails(
+                    examType: "Egzamin praktyczny i teoretyczny",
+                    stages: [
+                        "Etap I: Ocena portfolio (prace filmowe, scenariusze, fotografie)",
+                        "Etap II: Egzamin praktyczny - realizacja etiudy na zadany temat",
+                        "Etap III: Egzamin teoretyczny z historii kina i analizy filmowej",
+                        "Etap IV: Rozmowa kwalifikacyjna z komisją"
+                    ],
+                    description: "Egzamin sprawdza predyspozycje artystyczne, wyobraźnię twórczą oraz umiejętności techniczne. Kandydaci realizują krótką etiudę filmową na podstawie otrzymanego tematu, wykorzystując sprzęt udostępniony przez uczelnię.",
+                    sampleTasksURL: "https://filmschool.lodz.pl/rekrutacja/przykladowe-zadania",
+                    preparationTips: "Zalecamy obejrzenie klasycznych dzieł kina polskiego i światowego, praktykę w realizacji krótkich form filmowych oraz rozwijanie umiejętności pracy zespołowej."
+                )
+            ),
+            tuitionFee: 0,
+            availableSlots: 15,
+            lastYearThreshold: nil, // No point threshold - entrance exam only
+            tags: ["Reżyseria", "Film", "Kino", "Sztuka filmowa", "Scenariusz"],
+            imageURL: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800",
+            applicationURL: "https://filmschool.lodz.pl/rekrutacja/reżyseria"
+        ),
+        // Architecture - Mixed admission (points + portfolio)
+        StudyProgram(
+            id: "pw-architecture",
+            universityId: "pw",
+            name: "Architektura",
+            faculty: "Wydział Architektury",
+            field: "Architektura",
+            degree: .engineer,
+            mode: .stationary,
+            duration: 8,
+            language: "Polski",
+            description: "Program łączy sztukę z inżynierią, kształcąc architektów przygotowanych do projektowania przestrzeni miejskich i budynków. Studenci uczą się projektowania architektonicznego, urbanistyki, historii architektury oraz wykorzystania nowoczesnych technologii w projektowaniu.",
+            requirements: AdmissionRequirements(
+                description: "Rekrutacja dwuetapowa: punkty maturalne oraz egzamin z rysunku i kompozycji przestrzennej. Ocena z egzaminu maturalnego stanowi 50% wyniku końcowego, a egzamin wstępny 50%.",
+                formula: "W = 0.5 * (0.4 * MAT_R + 0.3 * FIZ_R + 0.3 * J.OBC_R) + 0.5 * Egzamin_rysunku",
+                minimumPoints: 70,
+                additionalExams: ["Egzamin z rysunku odręcznego", "Test z wyobraźni przestrzennej"],
+                documents: ["Świadectwo maturalne", "Podanie", "Portfolio prac plastycznych (opcjonalnie)"],
+                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90),
+                admissionType: .mixed,
+                entranceExamDetails: EntranceExamDetails(
+                    examType: "Egzamin z rysunku i wyobraźni przestrzennej",
+                    stages: [
+                        "Etap I: Weryfikacja punktów maturalnych",
+                        "Etap II: Egzamin z rysunku odręcznego (martwa natura, perspektywa)",
+                        "Etap III: Test wyobraźni przestrzennej i kompozycji"
+                    ],
+                    description: "Egzamin sprawdza umiejętności manualne, wyobraźnię przestrzenną oraz zmysł estetyczny. Kandydaci wykonują rysunek martwej natury oraz zadania z geometrii wykreślnej.",
+                    sampleTasksURL: "https://arch.pw.edu.pl/rekrutacja/przykłady",
+                    preparationTips: "Zalecamy uczestnictwo w kursach rysunku, ćwiczenie perspektywy i proporcji oraz zapoznanie się z podstawami geometrii wykreślnej."
+                )
+            ),
+            tuitionFee: 0,
+            availableSlots: 120,
+            lastYearThreshold: 82.5,
+            tags: ["Projektowanie", "Urbanistyka", "Rysunek techniczny", "CAD"],
+            imageURL: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800"
+        ),
+        // Medicine - Unknown admission criteria
+        StudyProgram(
+            id: "unknown-medicine-private",
+            universityId: "uj",
+            name: "Medycyna (studia anglojęzyczne)",
+            faculty: "Wydział Lekarski",
+            field: "Medycyna",
+            degree: .unified,
+            mode: .stationary,
+            duration: 12,
+            language: "Angielski",
+            description: "6-letni program medyczny w języku angielskim dla studentów międzynarodowych i polskich. Program przygotowuje do międzynarodowej kariery lekarskiej z możliwością specjalizacji w wielu krajach.",
+            requirements: AdmissionRequirements(
+                description: "Szczegółowe kryteria rekrutacji nie zostały jeszcze opublikowane. Prosimy o regularne sprawdzanie strony uczelni lub kontakt z biurem rekrutacji.",
+                formula: "Brak informacji",
+                minimumPoints: nil,
+                additionalExams: [],
+                documents: ["Dokładna lista dokumentów zostanie opublikowana"],
+                deadlineDate: nil,
+                admissionType: .unknown,
+                entranceExamDetails: nil
+            ),
+            tuitionFee: 15000, // per semester
+            availableSlots: nil,
+            lastYearThreshold: nil,
+            tags: ["Medycyna", "Studia anglojęzyczne", "International", "Medicine"],
+            applicationURL: "https://medicine.uj.edu.pl/en/admission"
+        ),
+        // Music Academy - Portfolio based
+        StudyProgram(
+            id: "academy-music-piano",
+            universityId: "uw", // Placeholder for Music Academy
+            name: "Instrumentalistyka - Fortepian",
+            faculty: "Wydział Fortepianu, Klawesynu i Organów",
+            field: "Sztuka",
+            degree: .bachelor,
+            mode: .stationary,
+            duration: 6,
+            language: "Polski",
+            description: "Kształcenie profesjonalnych pianistów na najwyższym poziomie artystycznym. Program obejmuje indywidualne lekcje z mistrzami fortepianu, występy publiczne oraz teoretyczne podstawy muzyki.",
+            requirements: AdmissionRequirements(
+                description: "Rekrutacja oparta na przesłuchaniach. Kandydaci wykonują program obejmujący utwory z różnych epok, w tym etiudę koncertową, sonatę klasyczną oraz utwór dowolny.",
+                formula: "Ocena przesłuchania przez komisję",
+                minimumPoints: nil,
+                additionalExams: ["Przesłuchanie - program 45 minut", "Egzamin z kształcenia słuchu", "Egzamin z harmonii"],
+                documents: ["Świadectwo maturalne", "CV artystyczne", "Lista repertuaru", "Nagrania (opcjonalnie)"],
+                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90),
+                admissionType: .portfolio,
+                entranceExamDetails: EntranceExamDetails(
+                    examType: "Przesłuchanie",
+                    stages: [
+                        "Etap I: Przesłuchanie wstępne - program 20 minut",
+                        "Etap II: Przesłuchanie główne - pełny program koncertowy",
+                        "Etap III: Egzaminy teoretyczne (kształcenie słuchu, harmonia)"
+                    ],
+                    description: "Kandydaci prezentują zróżnicowany repertuar demonstrując technikę, interpretację i muzykalność. Wymagane utwory: etiuda koncertowa (Chopin, Liszt), sonata klasyczna (Haydn, Mozart, Beethoven), utwór romantyczny, utwór XX/XXI wieku.",
+                    sampleTasksURL: nil,
+                    preparationTips: "Przygotuj program starannie, zwracając uwagę na stylistykę wykonawczą każdej epoki. Ćwicz regularnie z akompaniatorem."
+                )
+            ),
+            tuitionFee: 0,
+            availableSlots: 8,
+            lastYearThreshold: nil,
+            tags: ["Fortepian", "Muzyka klasyczna", "Koncerty", "Sztuka"]
         )
     ]
     

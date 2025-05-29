@@ -157,7 +157,16 @@ struct CategoryProgramsView: View {
                     duration: 6,
                     language: "Polski",
                     description: "Profesjonalne przygotowanie sportowe",
-                    requirements: MockDataService.shared.mockPrograms[0].requirements,
+                    requirements: AdmissionRequirements(
+                        description: "Rekrutacja na podstawie wyników matury z WF-u oraz testów sprawnościowych",
+                        formula: "W = 0.5 * WF + 0.3 * BIO + 0.2 * J.POL",
+                        minimumPoints: 70,
+                        additionalExams: ["Test sprawności fizycznej"],
+                        documents: ["Świadectwo maturalne", "Zaświadczenie lekarskie"],
+                        deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90),
+                        admissionType: .mixed,
+                        entranceExamDetails: nil
+                    ),
                     tuitionFee: 0,
                     availableSlots: 100,
                     lastYearThreshold: 75.5,
@@ -173,7 +182,16 @@ struct CategoryProgramsView: View {
                     duration: 6,
                     language: "Polski",
                     description: "Zarządzanie w branży turystycznej",
-                    requirements: MockDataService.shared.mockPrograms[0].requirements,
+                    requirements: AdmissionRequirements(
+                        description: "Rekrutacja na podstawie wyników matury z WF-u oraz testów sprawnościowych",
+                        formula: "W = 0.5 * WF + 0.3 * BIO + 0.2 * J.POL",
+                        minimumPoints: 70,
+                        additionalExams: ["Test sprawności fizycznej"],
+                        documents: ["Świadectwo maturalne", "Zaświadczenie lekarskie"],
+                        deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90),
+                        admissionType: .mixed,
+                        entranceExamDetails: nil
+                    ),
                     tuitionFee: 0,
                     availableSlots: 80,
                     lastYearThreshold: 72.3,
@@ -192,7 +210,16 @@ struct CategoryProgramsView: View {
                     duration: 6,
                     language: "Polski",
                     description: "Projektowanie graficzne i ilustracja",
-                    requirements: MockDataService.shared.mockPrograms[0].requirements,
+                    requirements: AdmissionRequirements(
+                        description: "Rekrutacja na podstawie wyników matury z WF-u oraz testów sprawnościowych",
+                        formula: "W = 0.5 * WF + 0.3 * BIO + 0.2 * J.POL",
+                        minimumPoints: 70,
+                        additionalExams: ["Test sprawności fizycznej"],
+                        documents: ["Świadectwo maturalne", "Zaświadczenie lekarskie"],
+                        deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90),
+                        admissionType: .mixed,
+                        entranceExamDetails: nil
+                    ),
                     tuitionFee: 0,
                     availableSlots: 40,
                     lastYearThreshold: 80.0,
@@ -261,6 +288,7 @@ struct ProgramRowCard: View {
     let program: StudyProgram
     let categoryColor: Color
     @StateObject private var firebaseService = FirebaseService.shared
+    @StateObject private var localStorage = LocalStorageService.shared
     
     private var isSaved: Bool {
         firebaseService.currentUser?.savedPrograms.contains(program.id) ?? false
@@ -268,16 +296,24 @@ struct ProgramRowCard: View {
     
     // Calculate user's progress based on their matura scores
     private var userProgress: Double? {
-        guard let threshold = program.lastYearThreshold,
-              let user = firebaseService.currentUser,
-              let maturaScores = user.maturaScores,
-              hasEnteredScores(maturaScores) else {
+        // Get matura scores from Firebase or local storage
+        var maturaScores: MaturaScores? = nil
+        
+        if let user = firebaseService.currentUser,
+           let userScores = user.maturaScores {
+            maturaScores = userScores
+        } else {
+            // Try local storage if not logged in - now reactive!
+            maturaScores = localStorage.maturaScores
+        }
+        
+        guard let scores = maturaScores,
+              hasEnteredScores(scores) else {
             return nil
         }
         
-        // Simple calculation - in real app this would use program's formula
-        let userPoints = calculateUserPoints(maturaScores: maturaScores)
-        return userPoints / threshold
+        // Use the program's extension method for proper formula-based calculation
+        return program.calculateProgress(maturaScores: scores)
     }
     
     private func hasEnteredScores(_ maturaScores: MaturaScores) -> Bool {
@@ -294,14 +330,6 @@ struct ProgramRowCard: View {
                maturaScores.biology != nil
     }
     
-    private func calculateUserPoints(maturaScores: MaturaScores) -> Double {
-        // Simplified calculation - in real app would use program-specific formula
-        var total = 0.0
-        if let math = maturaScores.mathematics { total += Double(math) }
-        if let polish = maturaScores.polish { total += Double(polish) }
-        if let foreign = maturaScores.foreignLanguage { total += Double(foreign) }
-        return total / 3.0 // Average for simplicity
-    }
     
     var body: some View {
         HStack(spacing: 16) {

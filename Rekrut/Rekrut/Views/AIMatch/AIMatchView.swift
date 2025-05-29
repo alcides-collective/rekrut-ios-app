@@ -75,7 +75,7 @@ struct AIMatchStartView: View {
             // Animated icon
             Image(systemName: "sparkles")
                 .font(.system(size: 80))
-                .foregroundColor(.purple)
+                .foregroundColor(.blue)
                 .symbolRenderingMode(.hierarchical)
             
             VStack(spacing: 16) {
@@ -103,7 +103,7 @@ struct AIMatchStartView: View {
                 HStack(spacing: 8) {
                     ForEach(0..<features.count, id: \.self) { index in
                         Circle()
-                            .fill(index == currentFeatureIndex ? Color.purple : Color.gray.opacity(0.3))
+                            .fill(index == currentFeatureIndex ? Color.blue : Color.gray.opacity(0.3))
                             .frame(width: 8, height: 8)
                             .animation(.easeInOut(duration: 0.3), value: currentFeatureIndex)
                     }
@@ -204,7 +204,7 @@ struct AnimatedBackgroundShape: View {
                     
                     // Apply gradient
                     let gradient = Gradient(colors: [
-                        Color.purple,
+                        Color.blue,
                         Color.pink,
                         Color.blue
                     ])
@@ -233,95 +233,321 @@ struct AnimatedBackgroundShape: View {
     }
 }
 
+// Answer option model
+struct AnswerOption: Identifiable {
+    let id = UUID().uuidString
+    let text: String
+    let icon: String
+    let isEmpty: Bool
+    
+    init(text: String, icon: String = "", isEmpty: Bool = false) {
+        self.text = text
+        self.icon = icon
+        self.isEmpty = isEmpty
+    }
+}
+
+// Grid answer panel component
+struct AnswerPanel: View {
+    let option: AnswerOption
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: {
+            if !option.isEmpty {
+                onTap()
+            }
+        }) {
+            HStack(spacing: 12) {
+                if !option.icon.isEmpty {
+                    Text(option.icon)
+                        .font(.system(size: 24))
+                }
+                
+                Text(option.text)
+                    .font(.system(size: 13))
+                    .fontWeight(.medium)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 70)
+            .frame(maxWidth: .infinity)
+            .foregroundColor(isSelected ? .white : (option.isEmpty ? .clear : .primary))
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isSelected ? Color.blue : (option.isEmpty ? Color.clear : Color(.systemGray6)))
+            )
+            .shadow(color: isSelected ? Color.blue.opacity(0.3) : Color.black.opacity(0.1), 
+                    radius: isSelected ? 8 : 4, 
+                    x: 0, 
+                    y: isSelected ? 4 : 2)
+        }
+        .disabled(option.isEmpty)
+    }
+}
+
+// Skill rating panel component
+struct SkillRatingPanel: View {
+    let skill: String
+    let rating: Int
+    let onSelect: (Int) -> Void
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            Text(skill)
+                .font(.system(size: 14))
+                .fontWeight(.medium)
+                .foregroundColor(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            HStack(spacing: 8) {
+                ForEach(1...5, id: \.self) { value in
+                    Image(systemName: value <= rating ? "star.fill" : "star")
+                        .font(.system(size: 22))
+                        .foregroundColor(value <= rating ? .yellow : .gray.opacity(0.3))
+                        .onTapGesture {
+                            onSelect(value)
+                        }
+                }
+            }
+        }
+        .padding(.vertical, 16)
+        .padding(.horizontal, 20)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemGray6))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(rating > 0 ? Color.blue : Color.clear, lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.1), 
+                radius: 4, 
+                x: 0, 
+                y: 2)
+    }
+}
+
+// Grid skills question component
+struct GridSkillsQuestionView: View {
+    let question: String
+    let subtitle: String?
+    let skills: [(name: String, key: String)]
+    @Binding var ratings: [String: Double]
+    let onComplete: (() -> Void)?
+    
+    var body: some View {
+        VStack(spacing: 0) {
+                // Fixed 200pt hero section
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(question)
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .multilineTextAlignment(.leading)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        if let subtitle = subtitle {
+                            Text(subtitle)
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.8))
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 24)
+                }
+                .frame(height: 200)
+                .frame(maxWidth: .infinity)
+                
+                // Skills in single column
+                VStack(spacing: 12) {
+                ForEach(skills, id: \.key) { skill in
+                    SkillRatingPanel(
+                        skill: skill.name,
+                        rating: Int(ratings[skill.key] ?? 0),
+                        onSelect: { value in
+                            ratings[skill.key] = Double(value)
+                            
+                            // Check if all skills have been rated
+                            let allRated = skills.allSatisfy { ratings[$0.key] != nil && ratings[$0.key]! > 0 }
+                            if allRated {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    onComplete?()
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 12)
+            .padding(.bottom, 24)
+            
+            Spacer()
+        }
+    }
+}
+
+// Unified grid question component
+struct GridQuestionView: View {
+    let question: String
+    let subtitle: String?
+    let options: [AnswerOption]
+    @Binding var selection: Set<String>
+    let allowsMultiple: Bool
+    let onSelect: ((String) -> Void)?
+    
+    private var paddedOptions: [AnswerOption] {
+        var result = options
+        // Ensure even number of options
+        if result.count % 2 != 0 {
+            result.append(AnswerOption(text: "", isEmpty: true))
+        }
+        return result
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+                // Fixed 200pt hero section
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(question)
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .multilineTextAlignment(.leading)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        if let subtitle = subtitle {
+                            Text(subtitle)
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.8))
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 24)
+                }
+                .frame(height: 200)
+                .frame(maxWidth: .infinity)
+                
+                // Grid with normal flow
+                LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: 12),
+                    GridItem(.flexible(), spacing: 12)
+                ],
+                spacing: 12
+            ) {
+                ForEach(paddedOptions) { option in
+                    AnswerPanel(
+                        option: option,
+                        isSelected: selection.contains(option.text),
+                        onTap: {
+                            if allowsMultiple {
+                                if selection.contains(option.text) {
+                                    selection.remove(option.text)
+                                } else {
+                                    selection.insert(option.text)
+                                }
+                            } else {
+                                selection.removeAll()
+                                selection.insert(option.text)
+                                onSelect?(option.text)
+                            }
+                        }
+                    )
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 12)
+            .padding(.bottom, allowsMultiple ? 12 : 24)
+            
+            // Multiple selection hint
+            if allowsMultiple {
+                Text("Możesz wybrać kilka odpowiedzi")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 8)
+                    .padding(.bottom, 20)
+            }
+            
+            Spacer()
+        }
+    }
+}
+
 struct AIMatchQuestionnaireView: View {
     @Binding var currentStep: Int
     @Binding var answers: [String: Any]
     @Binding var showingResults: Bool
     
-    let totalSteps = 11 // Updated: 4 regular steps + 6 skill steps + 1 open question
+    let totalSteps = 6 // Updated: 4 regular steps + 1 skill step + 1 open question
+    
+    @State private var showingCityPicker = false
+    @State private var selectedCity: String = ""
+    
+    let polishUniversityCities = [
+        "Warszawa", "Kraków", "Wrocław", "Poznań", "Gdańsk", 
+        "Łódź", "Katowice", "Lublin", "Białystok", "Szczecin",
+        "Bydgoszcz", "Toruń", "Olsztyn", "Rzeszów", "Opole",
+        "Częstochowa", "Gliwice", "Kielce", "Radom", "Sosnowiec",
+        "Zielona Góra", "Siedlce", "Nowy Sącz", "Koszalin", "Słupsk"
+    ].sorted()
     
     private func triggerHapticFeedback() {
-        if currentStep < 4 {
-            // Light feedback for early questions
-            let impact = UIImpactFeedbackGenerator(style: .light)
-            impact.prepare()
-            impact.impactOccurred()
-        } else if currentStep < 8 {
-            // Medium feedback for middle questions
-            let impact = UIImpactFeedbackGenerator(style: .medium)
-            impact.prepare()
-            impact.impactOccurred()
-        } else if currentStep < 10 {
-            // Heavy feedback for late questions
-            let impact = UIImpactFeedbackGenerator(style: .heavy)
-            impact.prepare()
-            impact.impactOccurred()
-        } else {
-            // Climax effect for final question - multiple haptics
-            let impact = UIImpactFeedbackGenerator(style: .heavy)
-            impact.prepare()
-            
-            // Create crescendo effect
-            for i in 0..<3 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.1) {
-                    impact.impactOccurred()
-                }
-            }
-        }
+        let impact = UIImpactFeedbackGenerator(style: .light)
+        impact.prepare()
+        impact.impactOccurred()
     }
     
     private func triggerResultsHaptic() {
-        // Special haptic pattern for results reveal
         let notification = UINotificationFeedbackGenerator()
         notification.prepare()
-        
-        // Build anticipation
-        let light = UIImpactFeedbackGenerator(style: .light)
-        let medium = UIImpactFeedbackGenerator(style: .medium)
-        let heavy = UIImpactFeedbackGenerator(style: .heavy)
-        
-        light.prepare()
-        medium.prepare()
-        heavy.prepare()
-        
-        // Crescendo pattern
-        DispatchQueue.main.async {
-            light.impactOccurred()
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            light.impactOccurred()
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            medium.impactOccurred()
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            medium.impactOccurred()
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            heavy.impactOccurred()
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            notification.notificationOccurred(.success)
-        }
+        notification.notificationOccurred(.success)
     }
     
     var body: some View {
         ZStack {
-            // Animated background
-            AnimatedBackgroundShape(progress: Double(currentStep) / Double(totalSteps - 1))
-                .ignoresSafeArea()
-                .opacity(0.4)
+            // Persistent background gradient
+            LinearGradient(
+                colors: [
+                    Color.blue,
+                    Color.blue.opacity(0.8),
+                    Color.blue.opacity(0.4),
+                    Color.blue.opacity(0.1),
+                    Color.clear
+                ],
+                startPoint: .top,
+                endPoint: .init(x: 0.5, y: 0.7)
+            )
+            .ignoresSafeArea()
             
             VStack(spacing: 0) {
-            // Navigation at the top
-            ZStack {
-                // Step counter - truly centered
+                // Navigation bar with all elements in one line
+                ZStack {
+                // Step counter (center) - in ZStack to ensure true centering
                 Text("Krok \(currentStep + 1) z \(totalSteps)")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 
-                // Navigation buttons on edges
                 HStack {
+                    // Back button (left)
                     if currentStep > 0 {
                         Button(action: {
                             withAnimation {
@@ -338,24 +564,20 @@ struct AIMatchQuestionnaireView: View {
                     
                     Spacer()
                     
+                    // Next/Results button (right)
                     if currentStep == totalSteps - 1 {
                         Button(action: {
                             triggerResultsHaptic()
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-                                withAnimation {
-                                    showingResults = true
-                                }
+                            withAnimation {
+                                showingResults = true
                             }
                         }) {
                             Text("Zobacz wyniki")
                                 .foregroundColor(isStepComplete() ? .blue : .gray)
                         }
                         .disabled(!isStepComplete())
-                    } else {
-                        // Always show Continue button
-                        let isMultiSelect = (currentStep == 0 || currentStep == 3)
-                        let canContinue = isMultiSelect && isStepComplete()
-                        
+                    } else if currentStep < 5 {
+                        let canContinue = isStepComplete()
                         Button(action: {
                             if canContinue {
                                 triggerHapticFeedback()
@@ -371,242 +593,154 @@ struct AIMatchQuestionnaireView: View {
                     }
                 }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 16)
             .padding(.vertical, 12)
+            .background(Color(.systemBackground))
             
-            Divider()
-            
-            ScrollView {
-                VStack(spacing: 20) {
+            // Main content area
+            VStack(spacing: 0) {
                     
                     // Questions based on step
-                    Group {
-                        switch currentStep {
+                    switch currentStep {
                         case 0:
-                            MultipleChoiceQuestion(
+                            GridQuestionView(
                                 question: "Które przedmioty w szkole sprawiają Ci największą przyjemność?",
+                                subtitle: nil,
                                 options: [
-                                    "Matematyka i fizyka",
-                                    "Biologia i chemia",
-                                    "Polski i historia",
-                                    "Języki obce",
-                                    "Informatyka",
-                                    "WOS i geografia",
-                                    "Przedmioty artystyczne"
+                                    AnswerOption(text: "Matematyka i fizyka", icon: "🔢"),
+                                    AnswerOption(text: "Biologia i chemia", icon: "🧬"),
+                                    AnswerOption(text: "Polski i historia", icon: "📚"),
+                                    AnswerOption(text: "Języki obce", icon: "🌍"),
+                                    AnswerOption(text: "Informatyka", icon: "💻"),
+                                    AnswerOption(text: "WOS i geografia", icon: "🗺️"),
+                                    AnswerOption(text: "Przedmioty artystyczne", icon: "🎨"),
+                                    AnswerOption(text: "Wychowanie fizyczne", icon: "⚽") // Added to make even
                                 ],
-                                allowsMultipleSelection: true,
-                                selectedAnswers: Binding(
-                                    get: { answers["subjects"] as? Set<String> ?? [] },
-                                    set: { 
-                                        answers["subjects"] = $0
-                                    }
-                                )
+                                selection: Binding(
+                                    get: { 
+                                        let subjects = answers["subjects"] as? Set<String> ?? []
+                                        return subjects
+                                    },
+                                    set: { answers["subjects"] = $0 }
+                                ),
+                                allowsMultiple: true,
+                                onSelect: nil
                             )
                         case 1:
-                            SingleChoiceQuestion(
+                            GridQuestionView(
                                 question: "Jaki tryb studiów Cię interesuje?",
+                                subtitle: nil,
                                 options: [
-                                    "Studia stacjonarne (dzienne)",
-                                    "Studia niestacjonarne (zaoczne)",
-                                    "Studia online",
-                                    "Jeszcze nie wiem"
+                                    AnswerOption(text: "Studia dzienne", icon: "🌞"),
+                                    AnswerOption(text: "Studia zaoczne", icon: "🌙"),
+                                    AnswerOption(text: "Studia online", icon: "💻"),
+                                    AnswerOption(text: "Jeszcze nie wiem", icon: "❓")
                                 ],
-                                selectedAnswer: Binding(
-                                    get: { answers["studyMode"] as? String },
-                                    set: { 
-                                        answers["studyMode"] = $0
-                                        triggerHapticFeedback()
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                            withAnimation {
-                                                currentStep += 1
-                                            }
-                                        }
-                                    }
-                                )
-                            )
-                        case 2:
-                            SingleChoiceQuestion(
-                                question: "Gdzie chciałbyś/chciałabyś studiować?",
-                                options: [
-                                    "W dużym mieście (Warszawa, Kraków, Wrocław)",
-                                    "W średnim mieście",
-                                    "W małym mieście akademickim",
-                                    "Blisko domu",
-                                    "Za granicą",
-                                    "Nie ma to dla mnie znaczenia"
-                                ],
-                                selectedAnswer: Binding(
-                                    get: { answers["location"] as? String },
-                                    set: { 
-                                        answers["location"] = $0
-                                        triggerHapticFeedback()
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                            withAnimation {
-                                                currentStep += 1
-                                            }
-                                        }
-                                    }
-                                )
-                            )
-                        case 3:
-                            MultipleChoiceQuestion(
-                                question: "Co jest dla Ciebie ważne przy wyborze kierunku?",
-                                options: [
-                                    "Perspektywy zawodowe",
-                                    "Wysokie zarobki",
-                                    "Pasja i zainteresowania",
-                                    "Prestiż kierunku",
-                                    "Łatwość studiowania",
-                                    "Możliwość pracy zdalnej",
-                                    "Stabilność zatrudnienia"
-                                ],
-                                allowsMultipleSelection: true,
-                                selectedAnswers: Binding(
-                                    get: { answers["priorities"] as? Set<String> ?? [] },
-                                    set: { 
-                                        answers["priorities"] = $0
-                                    }
-                                )
-                            )
-                        case 4:
-                            SingleSkillQuestion(
-                                skill: "Myślenie analityczne",
-                                rating: Binding(
+                                selection: Binding(
                                     get: { 
-                                        let skills = answers["skills"] as? [String: Double] ?? [:]
-                                        return skills["Myślenie analityczne"] ?? 0
+                                        if let mode = answers["studyMode"] as? String {
+                                            return Set([mode])
+                                        }
+                                        return Set()
                                     },
-                                    set: { value in
-                                        var skills = answers["skills"] as? [String: Double] ?? [:]
-                                        skills["Myślenie analityczne"] = value
-                                        answers["skills"] = skills
+                                    set: { 
+                                        answers["studyMode"] = $0.first
                                     }
                                 ),
-                                onComplete: {
+                                allowsMultiple: false,
+                                onSelect: { _ in
                                     triggerHapticFeedback()
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                         withAnimation {
                                             currentStep += 1
                                         }
+                                    }
+                                }
+                            )
+                        case 2:
+                            GridQuestionView(
+                                question: "Gdzie chciałbyś/chciałabyś studiować?",
+                                subtitle: nil,
+                                options: [
+                                    AnswerOption(text: "Duże miasto", icon: "🏙️"),
+                                    AnswerOption(text: "Średnie miasto", icon: "🏘️"),
+                                    AnswerOption(text: "Małe miasto", icon: "🏡"),
+                                    AnswerOption(text: "Blisko domu", icon: "🏠"),
+                                    AnswerOption(text: "Miasto akademickie", icon: "🎓"),
+                                    AnswerOption(text: "Bez znaczenia", icon: "🤷")
+                                ],
+                                selection: Binding(
+                                    get: { 
+                                        if let location = answers["location"] as? String {
+                                            return Set([location])
+                                        }
+                                        return Set()
+                                    },
+                                    set: { 
+                                        answers["location"] = $0.first
+                                    }
+                                ),
+                                allowsMultiple: false,
+                                onSelect: { location in
+                                    if location == "Blisko domu" {
+                                        showingCityPicker = true
+                                    } else {
+                                        triggerHapticFeedback()
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                            withAnimation {
+                                                currentStep += 1
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                        case 3:
+                            GridQuestionView(
+                                question: "Co jest dla Ciebie ważne przy wyborze kierunku?",
+                                subtitle: nil,
+                                options: [
+                                    AnswerOption(text: "Perspektywy", icon: "📈"),
+                                    AnswerOption(text: "Zarobki", icon: "💰"),
+                                    AnswerOption(text: "Pasja", icon: "❤️"),
+                                    AnswerOption(text: "Prestiż", icon: "👑"),
+                                    AnswerOption(text: "Łatwość", icon: "😌"),
+                                    AnswerOption(text: "Praca zdalna", icon: "🏠"),
+                                    AnswerOption(text: "Stabilność", icon: "🛡️"),
+                                    AnswerOption(text: "Rozwój", icon: "🚀") // Added to make even
+                                ],
+                                selection: Binding(
+                                    get: { 
+                                        let priorities = answers["priorities"] as? Set<String> ?? []
+                                        return priorities
+                                    },
+                                    set: { answers["priorities"] = $0 }
+                                ),
+                                allowsMultiple: true,
+                                onSelect: nil
+                            )
+                        case 4:
+                            GridSkillsQuestionView(
+                                question: "Oceń swoje umiejętności",
+                                subtitle: "Kliknij gwiazdki, aby ocenić każdą umiejętność od 1 do 5",
+                                skills: [
+                                    (name: "Myślenie analityczne", key: "Myślenie analityczne"),
+                                    (name: "Kreatywność", key: "Kreatywność"),
+                                    (name: "Praca z ludźmi", key: "Praca z ludźmi"),
+                                    (name: "Umiejętności techniczne", key: "Umiejętności techniczne"),
+                                    (name: "Komunikacja", key: "Komunikacja")
+                                ],
+                                ratings: Binding(
+                                    get: { answers["skills"] as? [String: Double] ?? [:] },
+                                    set: { answers["skills"] = $0 }
+                                ),
+                                onComplete: {
+                                    triggerHapticFeedback()
+                                    withAnimation {
+                                        currentStep += 1
                                     }
                                 }
                             )
                         case 5:
-                            SingleSkillQuestion(
-                                skill: "Kreatywność",
-                                rating: Binding(
-                                    get: { 
-                                        let skills = answers["skills"] as? [String: Double] ?? [:]
-                                        return skills["Kreatywność"] ?? 0
-                                    },
-                                    set: { value in
-                                        var skills = answers["skills"] as? [String: Double] ?? [:]
-                                        skills["Kreatywność"] = value
-                                        answers["skills"] = skills
-                                    }
-                                ),
-                                onComplete: {
-                                    triggerHapticFeedback()
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                        withAnimation {
-                                            currentStep += 1
-                                        }
-                                    }
-                                }
-                            )
-                        case 6:
-                            SingleSkillQuestion(
-                                skill: "Praca z ludźmi",
-                                rating: Binding(
-                                    get: { 
-                                        let skills = answers["skills"] as? [String: Double] ?? [:]
-                                        return skills["Praca z ludźmi"] ?? 0
-                                    },
-                                    set: { value in
-                                        var skills = answers["skills"] as? [String: Double] ?? [:]
-                                        skills["Praca z ludźmi"] = value
-                                        answers["skills"] = skills
-                                    }
-                                ),
-                                onComplete: {
-                                    triggerHapticFeedback()
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                        withAnimation {
-                                            currentStep += 1
-                                        }
-                                    }
-                                }
-                            )
-                        case 7:
-                            SingleSkillQuestion(
-                                skill: "Umiejętności techniczne",
-                                rating: Binding(
-                                    get: { 
-                                        let skills = answers["skills"] as? [String: Double] ?? [:]
-                                        return skills["Umiejętności techniczne"] ?? 0
-                                    },
-                                    set: { value in
-                                        var skills = answers["skills"] as? [String: Double] ?? [:]
-                                        skills["Umiejętności techniczne"] = value
-                                        answers["skills"] = skills
-                                    }
-                                ),
-                                onComplete: {
-                                    triggerHapticFeedback()
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                        withAnimation {
-                                            currentStep += 1
-                                        }
-                                    }
-                                }
-                            )
-                        case 8:
-                            SingleSkillQuestion(
-                                skill: "Komunikacja",
-                                rating: Binding(
-                                    get: { 
-                                        let skills = answers["skills"] as? [String: Double] ?? [:]
-                                        return skills["Komunikacja"] ?? 0
-                                    },
-                                    set: { value in
-                                        var skills = answers["skills"] as? [String: Double] ?? [:]
-                                        skills["Komunikacja"] = value
-                                        answers["skills"] = skills
-                                    }
-                                ),
-                                onComplete: {
-                                    triggerHapticFeedback()
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                        withAnimation {
-                                            currentStep += 1
-                                        }
-                                    }
-                                }
-                            )
-                        case 9:
-                            SingleSkillQuestion(
-                                skill: "Organizacja",
-                                rating: Binding(
-                                    get: { 
-                                        let skills = answers["skills"] as? [String: Double] ?? [:]
-                                        return skills["Organizacja"] ?? 0
-                                    },
-                                    set: { value in
-                                        var skills = answers["skills"] as? [String: Double] ?? [:]
-                                        skills["Organizacja"] = value
-                                        answers["skills"] = skills
-                                    }
-                                ),
-                                onComplete: {
-                                    triggerHapticFeedback()
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                        withAnimation {
-                                            currentStep += 1
-                                        }
-                                    }
-                                }
-                            )
-                        case 10:
                             OpenQuestion(
                                 question: "Opisz swoją wymarzoną pracę",
                                 prompt: "Opowiedz nam, jak wyobrażasz sobie swoją przyszłą karierę. Co chciałbyś/chciałabyś robić? W jakim środowisku pracować? Jakie wyzwania podejmować?",
@@ -619,10 +753,71 @@ struct AIMatchQuestionnaireView: View {
                             EmptyView()
                         }
                     }
-                }
-                .padding()
             }
-        }
+            .sheet(isPresented: $showingCityPicker) {
+                NavigationView {
+                    VStack(spacing: 0) {
+                        // Header
+                        VStack(spacing: 8) {
+                            Text("Wybierz swoje miasto")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                            
+                            Text("Pomożemy znaleźć uczelnie w Twojej okolicy")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        
+                        Divider()
+                        
+                        // City list
+                        ScrollView {
+                            VStack(spacing: 0) {
+                                ForEach(polishUniversityCities, id: \.self) { city in
+                                    Button(action: {
+                                        selectedCity = city
+                                        answers["homeCity"] = city
+                                        showingCityPicker = false
+                                        triggerHapticFeedback()
+                                        
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                            withAnimation {
+                                                currentStep += 1
+                                            }
+                                        }
+                                    }) {
+                                        HStack {
+                                            Text(city)
+                                                .foregroundColor(.primary)
+                                            Spacer()
+                                            if selectedCity == city {
+                                                Image(systemName: "checkmark")
+                                                    .foregroundColor(.blue)
+                                            }
+                                        }
+                                        .padding()
+                                        .background(Color(.systemBackground))
+                                    }
+                                    
+                                    Divider()
+                                        .padding(.leading)
+                                }
+                            }
+                        }
+                    }
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Anuluj") {
+                                showingCityPicker = false
+                                // Reset the location selection
+                                answers["location"] = nil
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -636,285 +831,16 @@ struct AIMatchQuestionnaireView: View {
             return answers["location"] != nil
         case 3:
             return !(answers["priorities"] as? Set<String> ?? []).isEmpty
-        case 4...9: // Skill questions
-            return true // Skills have default values
-        case 10:
+        case 4: // Skill question - auto-progress when all 5 rated
+            let skills = answers["skills"] as? [String: Double] ?? [:]
+            return skills["Myślenie analityczne"] != nil && skills["Kreatywność"] != nil &&
+                   skills["Praca z ludźmi"] != nil && skills["Umiejętności techniczne"] != nil &&
+                   skills["Komunikacja"] != nil
+        case 5:
             let dreamJob = answers["dreamJob"] as? String ?? ""
             return dreamJob.count >= 50
         default:
             return true
-        }
-    }
-}
-
-struct SingleChoiceQuestion: View {
-    let question: String
-    let options: [String]
-    @Binding var selectedAnswer: String?
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text(question)
-                .font(.title2)
-                .fontWeight(.bold)
-                .multilineTextAlignment(.leading)
-            
-            VStack(spacing: 12) {
-                ForEach(options, id: \.self) { option in
-                    Button(action: {
-                        withAnimation(.spring()) {
-                            selectedAnswer = option
-                        }
-                    }) {
-                        HStack {
-                            Text(option)
-                                .foregroundColor(.primary)
-                                .multilineTextAlignment(.leading)
-                            
-                            Spacer()
-                            
-                            Image(systemName: selectedAnswer == option ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(selectedAnswer == option ? .purple : .gray)
-                                .font(.title3)
-                        }
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(selectedAnswer == option ? Color.purple.opacity(0.1) : Color(.systemGray6))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(selectedAnswer == option ? Color.purple : Color.clear, lineWidth: 2)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-struct MultipleChoiceQuestion: View {
-    let question: String
-    let options: [String]
-    let allowsMultipleSelection: Bool
-    @Binding var selectedAnswers: Set<String>
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(question)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .multilineTextAlignment(.leading)
-                
-                Text("Możesz wybrać kilka odpowiedzi")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            VStack(spacing: 12) {
-                ForEach(options, id: \.self) { option in
-                    Button(action: {
-                        withAnimation(.spring()) {
-                            if selectedAnswers.contains(option) {
-                                selectedAnswers.remove(option)
-                            } else {
-                                selectedAnswers.insert(option)
-                            }
-                        }
-                    }) {
-                        HStack {
-                            Text(option)
-                                .foregroundColor(.primary)
-                                .multilineTextAlignment(.leading)
-                            
-                            Spacer()
-                            
-                            Image(systemName: selectedAnswers.contains(option) ? "checkmark.square.fill" : "square")
-                                .foregroundColor(selectedAnswers.contains(option) ? .purple : .gray)
-                                .font(.title3)
-                        }
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(selectedAnswers.contains(option) ? Color.purple.opacity(0.1) : Color(.systemGray6))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(selectedAnswers.contains(option) ? Color.purple : Color.clear, lineWidth: 2)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-struct SingleSkillQuestion: View {
-    let skill: String
-    @Binding var rating: Double
-    let onComplete: () -> Void
-    @State private var hasCompleted = false
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Oceń swoje umiejętności")
-                .font(.title2)
-                .fontWeight(.bold)
-                .multilineTextAlignment(.leading)
-            
-            VStack(alignment: .leading, spacing: 20) {
-                Text(skill)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
-                
-                VStack(spacing: 16) {
-                    ForEach(1...5, id: \.self) { value in
-                        Button(action: {
-                            withAnimation(.spring()) {
-                                rating = Double(value)
-                                if !hasCompleted {
-                                    hasCompleted = true
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                        onComplete()
-                                    }
-                                }
-                            }
-                        }) {
-                            HStack {
-                                // Number circle
-                                ZStack {
-                                    Circle()
-                                        .fill(Int(rating) == value ? Color.purple : Color(.systemGray5))
-                                        .frame(width: 50, height: 50)
-                                    
-                                    Text("\(value)")
-                                        .font(.title3)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(Int(rating) == value ? .white : .secondary)
-                                }
-                                
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(skillLevelText(for: value))
-                                        .font(.headline)
-                                        .foregroundColor(Int(rating) == value ? .purple : .primary)
-                                    
-                                    Text(skillDescription(for: value))
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(2)
-                                        .multilineTextAlignment(.leading)
-                                }
-                                
-                                Spacer()
-                                
-                                if Int(rating) == value {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.title2)
-                                        .foregroundColor(.purple)
-                                }
-                            }
-                            .padding()
-                            .frame(height: 80) // Fixed height for all buttons
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Int(rating) == value ? Color.purple.opacity(0.1) : Color(.systemGray6))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Int(rating) == value ? Color.purple : Color.clear, lineWidth: 2)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    private func skillLevelText(for value: Int) -> String {
-        switch value {
-        case 1: return "Podstawowy"
-        case 2: return "Początkujący"
-        case 3: return "Średni"
-        case 4: return "Zaawansowany"
-        case 5: return "Ekspert"
-        default: return ""
-        }
-    }
-    
-    private func skillDescription(for value: Int) -> String {
-        switch value {
-        case 1: return "Mam podstawową wiedzę, potrzebuję wsparcia"
-        case 2: return "Znam podstawy, mogę wykonywać proste zadania"
-        case 3: return "Radzę sobie w typowych sytuacjach"
-        case 4: return "Mam duże doświadczenie i pewność siebie"
-        case 5: return "To moja mocna strona, uczę innych"
-        default: return ""
-        }
-    }
-}
-
-struct SliderQuestion: View {
-    let question: String
-    let skills: [String]
-    @Binding var ratings: [String: Double]
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text(question)
-                .font(.title2)
-                .fontWeight(.bold)
-                .multilineTextAlignment(.leading)
-            
-            VStack(spacing: 20) {
-                ForEach(skills, id: \.self) { skill in
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text(skill)
-                                .font(.headline)
-                            Spacer()
-                            Text(ratingText(for: ratings[skill] ?? 3))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        HStack(spacing: 8) {
-                            Text("1")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            Slider(
-                                value: Binding(
-                                    get: { ratings[skill] ?? 3 },
-                                    set: { ratings[skill] = $0 }
-                                ),
-                                in: 1...5,
-                                step: 1
-                            )
-                            .accentColor(.purple)
-                            
-                            Text("5")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                }
-            }
-        }
-    }
-    
-    private func ratingText(for value: Double) -> String {
-        switch Int(value) {
-        case 1: return "Bardzo słabo"
-        case 2: return "Słabo"
-        case 3: return "Średnio"
-        case 4: return "Dobrze"
-        case 5: return "Bardzo dobrze"
-        default: return "Średnio"
         }
     }
 }
@@ -926,34 +852,60 @@ struct OpenQuestion: View {
     @FocusState private var isFocused: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(question)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .multilineTextAlignment(.leading)
+        VStack(spacing: 0) {
+                // Fixed 200pt hero section
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(question)
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .multilineTextAlignment(.leading)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        Text(prompt)
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.8))
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 24)
+                }
+                .frame(height: 200)
+                .frame(maxWidth: .infinity)
                 
-                Text(prompt)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.leading)
+                // Text editor section
+                VStack(alignment: .trailing, spacing: 12) {
+                    TextEditor(text: $answer)
+                        .focused($isFocused)
+                        .padding(16)
+                        .background(Color.white)
+                        .cornerRadius(12)
+                        .frame(minHeight: 200)
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(isFocused ? Color.blue : Color.clear, lineWidth: 2)
+                        )
+                    
+                    Text("\(answer.count)/50 znaków minimum")
+                        .font(.caption)
+                        .foregroundColor(answer.count < 50 ? .red : Color.gray)
+                        .padding(.horizontal, 4)
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 12)
+                .padding(.bottom, 24)
+                
+                Spacer()
             }
-            
-            VStack(alignment: .trailing, spacing: 8) {
-                TextEditor(text: $answer)
-                    .focused($isFocused)
-                    .padding(8)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                    .frame(minHeight: 150)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(isFocused ? Color.purple : Color.clear, lineWidth: 2)
-                    )
-                
-                Text("\(answer.count)/50 znaków minimum")
-                    .font(.caption)
-                    .foregroundColor(answer.count < 50 ? .red : .secondary)
+        .onAppear {
+            // Automatically focus and show keyboard
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                isFocused = true
             }
         }
     }

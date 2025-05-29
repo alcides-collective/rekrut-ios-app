@@ -247,24 +247,27 @@ struct ExploreFeedView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.universities = mockData.mockUniversities
             
-            // Create trending programs (modern, innovative fields)
-            self.trendingPrograms = createTrendingPrograms()
+            // Get all available programs
+            let allPrograms = mockData.mockPrograms + createAdditionalPrograms()
             
-            // Create personalized programs (Psychology and Law focus)
-            self.forYouPrograms = createForYouPrograms()
+            // Shuffle and distribute programs randomly
+            let shuffledPrograms = allPrograms.shuffled()
             
-            self.recommendedPrograms = mockData.mockPrograms.filter { 
-                // Include programs with high thresholds or no threshold data
-                if let threshold = $0.lastYearThreshold {
-                    return threshold > 85
-                }
-                return true // Include programs without threshold data
-            }
+            // Trending: Random selection of programs
+            self.trendingPrograms = Array(shuffledPrograms.shuffled().prefix(12))
+            
+            // For You: Different random selection
+            self.forYouPrograms = Array(shuffledPrograms.shuffled().prefix(8))
+            
+            // Recommended: Another random selection
+            self.recommendedPrograms = Array(shuffledPrograms.shuffled().prefix(10))
+            
             self.isLoading = false
         }
     }
     
-    private func createTrendingPrograms() -> [StudyProgram] {
+    private func createAdditionalPrograms() -> [StudyProgram] {
+        // Additional diverse programs to increase variety
         return [
             StudyProgram(
                 id: "uw-cognitive-science",
@@ -358,9 +361,7 @@ struct ExploreFeedView: View {
                 lastYearThreshold: 90.5,
                 tags: ["SpaceX", "Satelity", "Astrofizyka"]
             )
-        ] + mockData.mockPrograms.filter { 
-            $0.name.contains("Informatyka") || $0.tags.contains("AI")
-        }
+        ] + createForYouPrograms() // Combine all additional programs
     }
     
     private func getCityData() -> [CityInfo] {

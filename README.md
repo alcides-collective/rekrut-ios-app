@@ -94,7 +94,15 @@ The score considers multiple factors including historical thresholds, competitio
 - **Porównanie**: Compare up to 3 programs side-by-side with visual indicators for better decision making
 - **Profil**: Manage your account, view saved programs, and track your application journey
 
-### 🌟 Recent Updates (December 2024)
+### 🌟 Recent Updates (January 2025 - v0.0.3)
+- **Redesigned**: AI Match with stable grid layout and consolidated steps
+- **New**: City picker sheet for "Close to home" location selection
+- **Updated**: Blue color scheme throughout AI Match (replaced purple)
+- **Improved**: Left-aligned questions in hero sections with larger font
+- **Fixed**: Removed animations to eliminate panel flickering
+- **Added**: Polish hint text for multi-select questions
+
+### Previous Updates (December 2024)
 - **New**: Interactive Matura calculator with visual progress bars
 - **New**: Sheet-based navigation for all detail views
 - **Updated**: Text input fields replace picker wheels in calculator
