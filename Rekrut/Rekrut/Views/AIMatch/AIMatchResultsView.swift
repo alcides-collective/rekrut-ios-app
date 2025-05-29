@@ -22,39 +22,61 @@ struct AIMatchResultsView: View {
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
-                        // Header - Left aligned, minimal
-                        ResultsHeaderView(
-                            topMatch: matchedPrograms.first,
-                            onShare: { showShareSheet = true }
-                        )
-                        .padding(.horizontal, 24)
-                        .padding(.top, 20)
-                        
-                        // Results
-                        VStack(alignment: .leading, spacing: 20) {
-                            Text("Twoje dopasowania")
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .padding(.horizontal, 24)
+                        // Combined profile and insights sections
+                        VStack(alignment: .leading, spacing: 24) {
+                            // AI Message panel
+                            AIMessagePanel(
+                                message: generatePersonalizedMessage(answers: answers, programs: matchedPrograms)
+                            )
+                            .padding(.horizontal, 24)
                             
-                            // Top matches with images
-                            VStack(spacing: 16) {
-                                ForEach(Array(matchedPrograms.prefix(10).enumerated()), id: \.element.program.id) { index, match in
-                                    AIMatchProgramCard(
+                            // Pinterest-style staggered grid with dynamic sorting
+                            PinterestGrid(
+                                insightCards: [
+                                    GridInsightCard(
+                                        title: "Twój profil akademicki",
+                                        description: generateAcademicProfile(answers: answers, programs: matchedPrograms),
+                                        color: .purple
+                                    ),
+                                    GridInsightCard(
+                                        title: "Perspektywy zawodowe",
+                                        description: generateCareerProspects(programs: matchedPrograms),
+                                        color: .orange
+                                    ),
+                                    GridInsightCard(
+                                        title: "Dopasowanie społeczne",
+                                        description: generateSocialFit(answers: answers),
+                                        color: .blue
+                                    ),
+                                    GridInsightCard(
+                                        title: "Szanse rekrutacyjne",
+                                        description: generateAdmissionChances(programs: matchedPrograms),
+                                        color: .green
+                                    ),
+                                    GridInsightCard(
+                                        title: "Idealny kampus",
+                                        description: generateCampusPreferences(answers: answers, programs: matchedPrograms),
+                                        color: .teal
+                                    ),
+                                    GridInsightCard(
+                                        title: "Unikalne możliwości",
+                                        description: generateUniqueOpportunities(programs: matchedPrograms),
+                                        color: .indigo
+                                    )
+                                ],
+                                programCards: Array(matchedPrograms.prefix(10).enumerated()).map { index, match in
+                                    ProgramGridCard(
                                         program: match.program,
                                         university: MockDataService.shared.mockUniversities.first { $0.id == match.program.universityId }!,
                                         score: match.score,
                                         rank: index + 1,
-                                        reasons: match.reasons
+                                        reasons: match.reasons,
+                                        whyRecommended: generateWhyRecommended(for: match.program, answers: answers, score: match.score)
                                     )
                                 }
-                            }
+                            )
                             .padding(.horizontal, 24)
                         }
-                        
-                        // Insights section
-                        PersonalityInsightsSection(answers: answers)
-                            .padding(.top, 20)
                     }
                     .padding(.bottom, 40)
                 }
@@ -522,96 +544,576 @@ struct InfoPill: View {
     }
 }
 
-// Minimal insights section
-struct PersonalityInsightsSection: View {
-    let answers: [String: Any]
+// Helper functions for generating insights
+private func generateAcademicProfile(answers: [String: Any], programs: [(program: StudyProgram, score: Int, reasons: [String])]) -> String {
+    var profile = ""
     
-    var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Twój profil")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .padding(.horizontal, 24)
-            
-            VStack(spacing: 12) {
-                InsightRow(
-                    icon: "star.fill",
-                    title: "Mocne strony",
-                    description: generateStrengths(),
-                    color: .yellow
-                )
-                
-                InsightRow(
-                    icon: "location.fill",
-                    title: "Preferowane środowisko",
-                    description: generateEnvironment(),
-                    color: .blue
-                )
-                
-                InsightRow(
-                    icon: "chart.line.uptrend.xyaxis",
-                    title: "Ścieżka rozwoju",
-                    description: "Rozwijaj kompetencje praktyczne poprzez staże i projekty studenckie",
-                    color: .green
-                )
-            }
-            .padding(.horizontal, 24)
+    if let subjects = answers["subjects"] as? Set<String> {
+        if subjects.contains("Matematyka i fizyka") {
+            profile = "Typ analityczny z mocnym zapleczem w naukach ścisłych. "
+        } else if subjects.contains("Języki i historia") {
+            profile = "Typ humanistyczny z talentem językowym. "
+        } else if subjects.contains("Biologia i chemia") {
+            profile = "Typ badawczy z zamiłowaniem do nauk przyrodniczych. "
         }
     }
     
-    private func generateStrengths() -> String {
-        if let subjects = answers["subjects"] as? Set<String> {
-            if subjects.contains("Matematyka i fizyka") {
-                return "Analityczne myślenie i rozwiązywanie problemów"
-            } else if subjects.contains("Języki i historia") {
-                return "Komunikacja i myślenie krytyczne"
-            }
-        }
-        return "Wszechstronny profil z potencjałem rozwoju"
+    // Add learning style insight
+    if let skills = answers["skills"] as? [String: Double],
+       let creativity = skills["Kreatywność"],
+       creativity > 3.5 {
+        profile += "Preferujesz projekty i praktyczne zadania."
+    } else {
+        profile += "Cenisz systematyczną naukę i teorię."
     }
     
-    private func generateEnvironment() -> String {
-        if let location = answers["location"] as? String {
-            if location.contains("dużym mieście") {
-                return "Dynamiczne środowisko miejskie z wieloma możliwościami"
-            }
+    return profile.isEmpty ? "Wszechstronny profil z potencjałem w wielu dziedzinach" : profile
+}
+
+private func generateCareerProspects(programs: [(program: StudyProgram, score: Int, reasons: [String])]) -> String {
+    // Get top 3 matched programs and their career fields
+    let topPrograms = programs.prefix(3)
+    var careerFields = Set<String>()
+    
+    for match in topPrograms {
+        if match.program.field.contains("Informatyka") {
+            careerFields.insert("IT i programowanie")
+        } else if match.program.field.contains("Medycyna") {
+            careerFields.insert("ochrona zdrowia")
+        } else if match.program.field.contains("Prawo") {
+            careerFields.insert("prawo i administracja")
+        } else if match.program.field.contains("Ekonomia") {
+            careerFields.insert("finanse i biznes")
+        } else if match.program.field.contains("Inżynieria") {
+            careerFields.insert("przemysł i technologie")
         }
-        return "Środowisko sprzyjające rozwojowi i nauce"
+    }
+    
+    if careerFields.isEmpty {
+        return "Szerokie możliwości rozwoju w różnych branżach"
+    } else {
+        return "Najlepsze perspektywy w: \(careerFields.joined(separator: ", ")). Średnie zarobki po 5 latach: 8-15 tys. PLN"
     }
 }
 
-struct InsightRow: View {
-    let icon: String
+private func generateSocialFit(answers: [String: Any]) -> String {
+    var socialProfile = ""
+    
+    if let priorities = answers["priorities"] as? Set<String> {
+        if priorities.contains("Życie studenckie") {
+            socialProfile = "Aktywny społecznie - koła naukowe, organizacje studenckie będą idealne. "
+        } else if priorities.contains("Prestiż uczelni") {
+            socialProfile = "Ambitny i zorientowany na sukces - networking akademicki będzie kluczowy. "
+        }
+    }
+    
+    if let location = answers["location"] as? String {
+        if location.contains("dużym mieście") {
+            socialProfile += "Środowisko wielkomiejskie z bogatą ofertą kulturalną."
+        } else if location.contains("małym mieście") {
+            socialProfile += "Kameralna atmosfera, łatwiejsze nawiązywanie znajomości."
+        }
+    }
+    
+    return socialProfile.isEmpty ? "Łatwo adaptujesz się do różnych środowisk społecznych" : socialProfile
+}
+
+private func generateAdmissionChances(programs: [(program: StudyProgram, score: Int, reasons: [String])]) -> String {
+    let highChance = programs.filter { $0.score >= 85 }.count
+    let mediumChance = programs.filter { $0.score >= 70 && $0.score < 85 }.count
+    let lowChance = programs.filter { $0.score < 70 }.count
+    
+    var assessment = ""
+    if highChance >= 5 {
+        assessment = "Bardzo wysokie szanse! "
+    } else if highChance >= 2 {
+        assessment = "Dobre szanse na topowe kierunki. "
+    } else {
+        assessment = "Solidne szanse przyjęcia. "
+    }
+    
+    assessment += "\(highChance) kierunków z >85% dopasowania, \(mediumChance) z dobrymi szansami"
+    
+    return assessment
+}
+
+private func generateCampusPreferences(answers: [String: Any], programs: [(program: StudyProgram, score: Int, reasons: [String])]) -> String {
+    var preferences = ""
+    
+    if let location = answers["location"] as? String {
+        if location.contains("blisko domu") {
+            preferences = "Preferujesz uczelnię w pobliżu - oszczędność na mieszkaniu. "
+        } else if location.contains("za granicą") {
+            preferences = "Marzysz o studiach międzynarodowych - sprawdź programy Erasmus+. "
+        }
+    }
+    
+    // Check university types in top matches
+    let topUniversities = programs.prefix(5).compactMap { match in
+        MockDataService.shared.mockUniversities.first { $0.id == match.program.universityId }
+    }
+    
+    if topUniversities.contains(where: { $0.type == .technical }) {
+        preferences += "Pasują Ci uczelnie techniczne z nowoczesnymi laboratoriami."
+    } else if topUniversities.contains(where: { $0.type == .university }) {
+        preferences += "Cenisz tradycję i prestiż klasycznych uniwersytetów."
+    }
+    
+    return preferences.isEmpty ? "Otwartość na różne typy kampusów i lokalizacji" : preferences
+}
+
+private func generateUniqueOpportunities(programs: [(program: StudyProgram, score: Int, reasons: [String])]) -> String {
+    var opportunities = Set<String>()
+    
+    // Check for special features in top programs
+    for match in programs.prefix(5) {
+        if match.program.language == "Angielski" {
+            opportunities.insert("Studia w języku angielskim")
+        }
+        if match.program.tuitionFee == 0 {
+            opportunities.insert("Studia bezpłatne")
+        }
+        if match.program.tags.contains(where: { $0.contains("AI") || $0.contains("Machine Learning") }) {
+            opportunities.insert("Specjalizacja AI/ML")
+        }
+        if match.program.requirements.admissionType == .portfolio {
+            opportunities.insert("Rozwój artystyczny")
+        }
+    }
+    
+    if opportunities.isEmpty {
+        return "Wiele programów z możliwością wyjazdów zagranicznych i praktyk w top firmach"
+    } else {
+        return opportunities.prefix(3).joined(separator: ", ") + ". Sprawdź szczegóły każdego kierunku!"
+    }
+}
+
+private func generatePersonalizedMessage(answers: [String: Any], programs: [(program: StudyProgram, score: Int, reasons: [String])]) -> String {
+    // In a real app, this would call OpenAI API with the user's answers and matched programs
+    // For now, generate a personalized message based on the data we have
+    
+    let topMatch = programs.first
+    let highMatches = programs.filter { $0.score >= 80 }.count
+    
+    var message = "Na podstawie Twoich odpowiedzi widzę, że "
+    
+    // Add personality insights
+    if let subjects = answers["subjects"] as? Set<String> {
+        if subjects.contains("Matematyka i fizyka") {
+            message += "masz silne predyspozycje do nauk ścisłych i analitycznego myślenia. "
+        } else if subjects.contains("Języki i historia") {
+            message += "świetnie radzisz sobie z komunikacją i analizą tekstów. "
+        }
+    }
+    
+    // Add match insights
+    if let top = topMatch {
+        message += "Kierunek \(top.program.name) idealnie pasuje do Twojego profilu z \(top.score)% dopasowaniem. "
+    }
+    
+    // Add recommendation
+    if highMatches > 5 {
+        message += "Masz wiele świetnych opcji do wyboru - warto rozważyć praktyki lub dni otwarte na uczelniach, aby lepiej poznać atmosferę każdej z nich."
+    } else if highMatches > 0 {
+        message += "Znaleźliśmy kilka kierunków, które mogą być dla Ciebie idealne. Zastanów się, który najbardziej odpowiada Twoim długoterminowym celom."
+    }
+    
+    return message
+}
+
+private func generateRecommendedMajors(answers: [String: Any], programs: [(program: StudyProgram, score: Int, reasons: [String])]) -> String {
+    let topPrograms = programs.prefix(3)
+    var majorsList = ""
+    
+    for (index, match) in topPrograms.enumerated() {
+        let rank = index + 1
+        let university = MockDataService.shared.mockUniversities.first { $0.id == match.program.universityId }
+        
+        majorsList += "\(rank). \(match.program.name) - \(university?.shortName ?? "")\n\(match.score)% dopasowania"
+        
+        if index < 2 { // Add spacing between items except for the last one
+            majorsList += "\n\n"
+        }
+    }
+    
+    if majorsList.isEmpty {
+        majorsList = "Analizuję najlepsze opcje dopasowane do Twoich preferencji i wyników..."
+    } else {
+        majorsList = "Oto kierunki, które najlepiej pasują do Twojego profilu:\n\n" + majorsList
+    }
+    
+    return majorsList
+}
+
+private func generateWhyRecommended(for program: StudyProgram, answers: [String: Any], score: Int) -> String {
+    var explanation = ""
+    
+    // Subject-based reasoning
+    if let subjects = answers["subjects"] as? Set<String> {
+        if subjects.contains("Matematyka i fizyka") && program.field.contains("Informatyka") {
+            explanation = "Twoje predyspozycje matematyczne idealnie pasują do programowania i algorytmów"
+        } else if subjects.contains("Biologia i chemia") && program.field.contains("Medycyna") {
+            explanation = "Silne podstawy w naukach przyrodniczych to fundament kariery medycznej"
+        } else if subjects.contains("Języki i historia") && program.field.contains("Prawo") {
+            explanation = "Umiejętności analityczne i komunikacyjne są kluczowe w prawie"
+        }
+    }
+    
+    // Priority-based reasoning
+    if let priorities = answers["priorities"] as? Set<String> {
+        if priorities.contains("Prestiż uczelni") && ["UW", "UJ", "PW"].contains(program.universityId) {
+            if !explanation.isEmpty { explanation += ". " }
+            explanation += "Prestiżowa uczelnia o wysokiej pozycji w rankingach"
+        }
+        if priorities.contains("Wysokie zarobki") && program.field.contains("Informatyka") {
+            if !explanation.isEmpty { explanation += ". " }
+            explanation += "Sektor IT oferuje jedne z najwyższych zarobków na rynku"
+        }
+    }
+    
+    // Location preference
+    if let location = answers["location"] as? String {
+        let university = MockDataService.shared.mockUniversities.first { $0.id == program.universityId }
+        if location.contains("dużym mieście") && ["Warszawa", "Kraków", "Wrocław"].contains(university?.city ?? "") {
+            if !explanation.isEmpty { explanation += ". " }
+            explanation += "Studiowanie w dynamicznym metropolii"
+        }
+    }
+    
+    return explanation.isEmpty ? "Kierunek dopasowany do Twojego profilu i preferencji" : explanation
+}
+
+
+// Pinterest Grid with dynamic sorting
+struct PinterestGrid: View {
+    let insightCards: [GridInsightCard]
+    let programCards: [ProgramGridCard]
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            // Left column
+            VStack(spacing: 12) {
+                ForEach(getLeftColumnItems(), id: \.id) { item in
+                    item.view
+                }
+            }
+            
+            // Right column
+            VStack(spacing: 12) {
+                ForEach(getRightColumnItems(), id: \.id) { item in
+                    item.view
+                }
+            }
+        }
+    }
+    
+    private func getLeftColumnItems() -> [PinterestItem] {
+        let allItems = createAllItems()
+        return distributeItems(allItems).left
+    }
+    
+    private func getRightColumnItems() -> [PinterestItem] {
+        let allItems = createAllItems()
+        return distributeItems(allItems).right
+    }
+    
+    private func createAllItems() -> [PinterestItem] {
+        var items: [PinterestItem] = []
+        
+        // Add insight cards
+        for (index, card) in insightCards.enumerated() {
+            items.append(PinterestItem(
+                id: "insight-\(index)",
+                view: AnyView(card),
+                priority: 0, // Insights have highest priority
+                estimatedHeight: estimateHeight(for: card.description)
+            ))
+        }
+        
+        // Add program cards with priority based on rank
+        for (index, card) in programCards.enumerated() {
+            items.append(PinterestItem(
+                id: "program-\(index)",
+                view: AnyView(card),
+                priority: 1, // All programs after insights
+                estimatedHeight: 280 // Programs have consistent height due to images
+            ))
+        }
+        
+        return items.sorted { $0.priority < $1.priority }
+    }
+    
+    private func distributeItems(_ items: [PinterestItem]) -> (left: [PinterestItem], right: [PinterestItem]) {
+        var leftItems: [PinterestItem] = []
+        var rightItems: [PinterestItem] = []
+        var leftHeight: CGFloat = 0
+        var rightHeight: CGFloat = 0
+        
+        // Separate insights and programs
+        let insights = items.filter { $0.priority == 0 }
+        let programs = items.filter { $0.priority == 1 }
+        
+        // Distribute insights using height balancing
+        for item in insights {
+            if leftHeight <= rightHeight {
+                leftItems.append(item)
+                leftHeight += item.estimatedHeight + 12
+            } else {
+                rightItems.append(item)
+                rightHeight += item.estimatedHeight + 12
+            }
+        }
+        
+        // Distribute programs in strict rank order to maintain ranking
+        // Always place #1 first, then alternate columns
+        for (index, item) in programs.enumerated() {
+            let rank = index + 1
+            
+            if rank == 1 {
+                // Always put #1 in left column first
+                leftItems.append(item)
+            } else {
+                // For remaining programs, balance by checking current column heights
+                if leftItems.filter({ $0.priority == 1 }).count <= rightItems.filter({ $0.priority == 1 }).count {
+                    leftItems.append(item)
+                } else {
+                    rightItems.append(item)
+                }
+            }
+        }
+        
+        return (left: leftItems, right: rightItems)
+    }
+    
+    private func estimateHeight(for text: String) -> CGFloat {
+        // Rough estimation: 16pt per line + padding
+        let lines = max(3, min(8, text.count / 60)) // Estimate lines based on character count
+        return CGFloat(56 + (lines * 16) + 32) // Header + content + padding
+    }
+}
+
+struct PinterestItem {
+    let id: String
+    let view: AnyView
+    let priority: Int // 0 = highest priority, 2 = lowest
+    let estimatedHeight: CGFloat
+}
+
+// Compact program card for Pinterest grid
+struct ProgramGridCard: View {
+    let program: StudyProgram
+    let university: University
+    let score: Int
+    let rank: Int
+    let reasons: [String]
+    let whyRecommended: String
+    @State private var showingDetail = false
+    
+    var body: some View {
+        Button(action: {
+            showingDetail = true
+        }) {
+            VStack(spacing: 0) {
+                // Colored header with program name and score
+                HStack {
+                    Text(program.name)
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                    
+                    Spacer()
+                    
+                    Text("\(score)%")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                }
+                .padding(12)
+                .background(scoreColor)
+                
+                // Program info with AI explanation
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(program.name)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    HStack(spacing: 4) {
+                        Text(university.shortName ?? university.displayName)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        
+                        Text("•")
+                            .font(.caption2)
+                            .foregroundColor(.secondary.opacity(0.6))
+                        
+                        Text(university.city)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    .lineLimit(1)
+                    
+                    // AI-generated explanation
+                    Text(whyRecommended)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .lineLimit(3)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(12)
+                .background(Color.white)
+            }
+            .cornerRadius(12)
+            .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .sheet(isPresented: $showingDetail) {
+            NavigationView {
+                ProgramDetailView(program: program, university: university)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Zamknij") {
+                                showingDetail = false
+                            }
+                        }
+                    }
+            }
+        }
+    }
+    
+    private var scoreColor: Color {
+        if score >= 90 { return .green }
+        else if score >= 80 { return .orange }
+        else { return .purple }
+    }
+}
+
+// AI Message panel
+struct AIMessagePanel: View {
+    let message: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .font(.caption)
+                    .foregroundColor(.purple)
+                
+                Text("Personalizowana analiza AI")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.purple)
+            }
+            
+            Text(message)
+                .font(.subheadline)
+                .foregroundColor(.primary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [Color.purple.opacity(0.05), Color.blue.opacity(0.05)]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.purple.opacity(0.2), lineWidth: 1)
+        )
+    }
+}
+
+// Grid card for two-column layout with notification badge
+struct GridInsightCardWithBadge: View {
+    let title: String
+    let description: String
+    let color: Color
+    let badgeNumber: Int
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Colored header with title and badge
+            ZStack {
+                // Header background
+                color
+                    .frame(height: 48)
+                
+                HStack {
+                    // Title
+                    Text(title)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    // Notification badge
+                    ZStack {
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: 20, height: 20)
+                        
+                        Text("\(badgeNumber)")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundColor(color)
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+            
+            // White content area
+            Text(description)
+                .font(.caption)
+                .foregroundColor(.primary)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .padding(16)
+                .background(Color.white)
+        }
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
+    }
+}
+
+// Grid card for two-column layout
+struct GridInsightCard: View {
     let title: String
     let description: String
     let color: Color
     
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon)
-                .font(.body)
-                .foregroundColor(color)
-                .frame(width: 32, height: 32)
-                .background(color.opacity(0.1))
-                .cornerRadius(8)
+        VStack(spacing: 0) {
+            // Colored header with title (single line)
+            Text(title)
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+                .frame(height: 48)
+                .background(color)
             
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                
-                Text(description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            // White content area
+            Text(description)
+                .font(.caption)
+                .foregroundColor(.primary)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .padding(16)
+                .background(Color.white)
         }
-        .padding(16)
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(12)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
     }
 }
+
 
 struct ShareSheet: UIViewControllerRepresentable {
     let items: [Any]
