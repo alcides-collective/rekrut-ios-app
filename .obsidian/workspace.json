@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "prompt.md",
+                "file": "TODOLIST.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "prompt"
+              "title": "TODOLIST"
             }
           }
         ]
@@ -170,12 +170,23 @@
   },
   "active": "8e82cbdbc09ee18a",
   "lastOpenFiles": [
-    "Rekrut/Rekrut/Views/Explore/CityDetailView.swift",
-    "Rekrut/Rekrut/Views/Explore/ExploreFeedComponents~.swift",
-    "Rekrut/Rekrut/Services/LocalStorageService.swift",
+    "Rekrut/Rekrut.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved",
+    "Rekrut/Rekrut/Extensions/Spacing.swift",
     "README.md",
+    "TODOLIST.md",
     "CLAUDE.md",
     "prompt.md",
-    "TODOLIST.md"
+    "docs/formula/formula_parser.py",
+    "FORMULA_STORAGE_GUIDE.md",
+    "docs/formula/FORMULA_STORAGE_GUIDE.md",
+    "FORMULA_SPECIFICATION.md",
+    "docs/formula/FORMULA_SPECIFICATION.md",
+    "docs/formula/FORMULA_SYSTEM_GUIDE.md",
+    "docs/formula",
+    "docs",
+    "FORMULA_SYSTEM_GUIDE.md",
+    "Rekrut/Rekrut/Views/Explore/CityDetailView.swift",
+    "Rekrut/Rekrut/Views/Explore/ExploreFeedComponents~.swift",
+    "Rekrut/Rekrut/Services/LocalStorageService.swift"
   ]
 }

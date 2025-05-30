@@ -9,6 +9,80 @@ import SwiftUI
 import UIKit
 
 struct AIMatchView: View {
+    @State private var showingProfile = false
+    @StateObject private var firebaseService = FirebaseService.shared
+    @State private var showNavBar = false
+    
+    var body: some View {
+        NavigationView {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Custom inline header
+                        HStack {
+                            Text("AI Match")
+                                .font(.title)
+                                .fontWeight(.bold)
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                showingProfile = true
+                            }) {
+                                Image(systemName: firebaseService.isAuthenticated ? "person.crop.circle.fill" : "person.crop.circle")
+                                    .font(.title2)
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 10)
+                        .background(
+                            GeometryReader { geometry in
+                                Color.clear
+                                    .onChange(of: geometry.frame(in: .global).minY) { value in
+                                        withAnimation(.easeInOut(duration: 0.1)) {
+                                            showNavBar = value < 50
+                                        }
+                                    }
+                            }
+                        )
+                        
+                        AIMatchContentView()
+                    }
+                }
+            }
+            .navigationBarHidden(true)
+            .overlay(alignment: .top) {
+                // Navigation bar that appears on scroll
+                if showNavBar {
+                    VStack(spacing: 0) {
+                        Color.clear
+                            .frame(height: 50)
+                        
+                        HStack {
+                            Text("AI Match")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .frame(height: 56)
+                        .background(.regularMaterial)
+                        .overlay(alignment: .bottom) {
+                            Divider()
+                        }
+                    }
+                    .ignoresSafeArea()
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+        }
+        .navigationViewStyle(StackNavigationViewStyle())
+        .sheet(isPresented: $showingProfile) {
+            ProfileView()
+        }
+    }
+}
+
+struct AIMatchContentView: View {
     @State private var hasStarted = false
     @State private var currentStep = 0
     @State private var answers: [String: Any] = [:]
@@ -16,50 +90,48 @@ struct AIMatchView: View {
     @StateObject private var firebaseService = FirebaseService.shared
     
     var body: some View {
-        VStack {
+        Group {
             if !hasStarted {
                 AIMatchStartView(hasStarted: $hasStarted)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if showingResults {
                 AIMatchResultsView(answers: answers)
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button("Zacznij od nowa") {
-                                withAnimation {
-                                    currentStep = 0
-                                    answers = [:]
-                                    showingResults = false
-                                    hasStarted = false
-                                }
-                            }
-                        }
-                    }
             } else {
                 AIMatchQuestionnaireView(
                     currentStep: $currentStep,
                     answers: $answers,
                     showingResults: $showingResults
                 )
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        if currentStep > 0 {
-                            Button(action: {
-                                withAnimation {
-                                    currentStep -= 1
-                                }
-                            }) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "chevron.left")
-                                    Text("Wstecz")
-                                }
-                            }
+            }
+        }
+        .background(Color(.systemBackground))
+        .navigationTitle(navigationTitle)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                if showingResults {
+                    Button("Zacznij od nowa") {
+                        withAnimation {
+                            currentStep = 0
+                            answers = [:]
+                            showingResults = false
+                            hasStarted = false
+                        }
+                    }
+                } else if hasStarted && currentStep > 0 {
+                    Button(action: {
+                        withAnimation {
+                            currentStep -= 1
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                            Text("Wstecz")
                         }
                     }
                 }
             }
         }
-        .background(Color.white)
-        .navigationTitle(navigationTitle)
-        .navigationBarTitleDisplayMode(.inline)
     }
     
     private var navigationTitle: String {
@@ -97,7 +169,7 @@ struct AIMatchStartView: View {
             VStack(spacing: 16) {
                 Text("Dopasowanie AI")
                     .font(.largeTitle)
-                    .fontWeight(.bold)
+                    .bold()
                     .multilineTextAlignment(.center)
                 
                 Text("Znajdź idealny kierunek studiów")
@@ -121,7 +193,7 @@ struct AIMatchStartView: View {
                 HStack(spacing: 8) {
                     ForEach(0..<features.count, id: \.self) { index in
                         Circle()
-                            .fill(index == currentFeatureIndex ? Color.blue : Color.gray.opacity(0.3))
+                            .fill(index == currentFeatureIndex ? Color.blue : Color.secondary.opacity(0.3))
                             .frame(width: 8, height: 8)
                             .animation(.easeInOut(duration: 0.3), value: currentFeatureIndex)
                     }
@@ -149,7 +221,7 @@ struct AIMatchStartView: View {
             Spacer()
         }
         .padding(.horizontal, 60)
-        .background(Color.white)
+        .background(Color(.systemBackground))
     }
     
     private func startFeatureAnimation() {
@@ -326,7 +398,7 @@ struct SkillRatingPanel: View {
                 ForEach(1...5, id: \.self) { value in
                     Image(systemName: value <= rating ? "star.fill" : "star")
                         .font(.system(size: 22))
-                        .foregroundColor(value <= rating ? .yellow : .gray.opacity(0.3))
+                        .foregroundColor(value <= rating ? .yellow : .secondary.opacity(0.3))
                         .onTapGesture {
                             onSelect(value)
                         }
@@ -370,7 +442,7 @@ struct GridSkillsQuestionView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(question)
                             .font(.title)
-                            .fontWeight(.bold)
+                            .bold()
                             .multilineTextAlignment(.leading)
                             .foregroundColor(.primary)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -468,7 +540,7 @@ struct GridQuestionView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(question)
                             .font(.title)
-                            .fontWeight(.bold)
+                            .bold()
                             .multilineTextAlignment(.leading)
                             .foregroundColor(.primary)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -485,7 +557,7 @@ struct GridQuestionView: View {
                         if allowsMultiple {
                             Text("Możesz wybrać kilka odpowiedzi")
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.top, 4)
                         }
@@ -842,7 +914,7 @@ struct AIMatchQuestionnaireView: View {
                         VStack(spacing: 8) {
                             Text("Wybierz swoje miasto")
                                 .font(.title2)
-                                .fontWeight(.bold)
+                                .bold()
                             
                             Text("Pomożemy znaleźć uczelnie w Twojej okolicy")
                                 .font(.subheadline)
@@ -944,7 +1016,7 @@ struct OpenQuestion: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(question)
                             .font(.title)
-                            .fontWeight(.bold)
+                            .bold()
                             .multilineTextAlignment(.leading)
                             .foregroundColor(.primary)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -987,7 +1059,7 @@ struct OpenQuestion: View {
                     TextEditor(text: $answer)
                         .focused($isFocused)
                         .padding(16)
-                        .background(Color.white)
+                        .background(Color(.systemBackground))
                         .cornerRadius(12)
                         .frame(minHeight: 200)
                         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
@@ -998,7 +1070,7 @@ struct OpenQuestion: View {
                     
                     Text("\(answer.count)/50 znaków minimum")
                         .font(.caption)
-                        .foregroundColor(answer.count < 50 ? .red : Color.gray)
+                        .foregroundColor(answer.count < 50 ? .red : Color.secondary)
                         .padding(.horizontal, 4)
                 }
                 .padding(.horizontal, 24)

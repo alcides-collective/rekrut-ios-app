@@ -12,7 +12,7 @@ struct EmptyFilterResultsView: View {
         VStack(spacing: 16) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 50))
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
             
             Text("Brak wyników")
                 .font(.headline)
@@ -120,9 +120,9 @@ struct TrendingProgramCard: View {
                         case .empty:
                             // Loading state
                             ZStack {
-                                Color.gray.opacity(0.1)
+                                Color.secondary.opacity(0.1)
                                 ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .gray))
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .secondary))
                             }
                         @unknown default:
                             backgroundGradient
@@ -209,12 +209,12 @@ struct TrendingProgramCard: View {
                                 Text("Wprowadź maturę")
                                     .font(.caption)
                                     .fontWeight(.medium)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.secondary)
                             }
                         }
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(Color.white.opacity(0.9))
+                        .background(Color(.systemBackground).opacity(0.9))
                         .cornerRadius(12)
                     } else {
                         // Show admission type for programs without threshold
@@ -281,8 +281,8 @@ struct TrendingProgramCard: View {
                 return .red
             }
         }
-        // Gray color if no user data entered
-        return .gray
+        // Secondary color if no user data entered
+        return .secondary
     }
     
     private func getAdmissionTypeIcon() -> String {
@@ -330,7 +330,7 @@ struct TrendingProgramCard: View {
         case .interview:
             return .green
         case .unknown:
-            return .gray
+            return .secondary
         case .maturaPoints:
             return .orange
         }
@@ -443,7 +443,7 @@ struct RecommendedProgramCard: View {
                                     // User hasn't entered matura scores
                                     Text("Wprowadź maturę")
                                         .font(.caption)
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(.secondary)
                                 } else {
                                     Text("\(Int(threshold)) pkt")
                                         .font(.caption)
@@ -473,7 +473,7 @@ struct RecommendedProgramCard: View {
                     .foregroundColor(.secondary)
             }
             .padding()
-            .background(Color.white)
+            .background(Color(.systemBackground))
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.05), radius: 10)
         }
@@ -502,8 +502,8 @@ struct RecommendedProgramCard: View {
                 return .red
             }
         }
-        // Gray color if no user data entered
-        return .gray
+        // Secondary color if no user data entered
+        return .secondary
     }
     
     private func getAdmissionTypeIcon() -> String {
@@ -551,7 +551,7 @@ struct RecommendedProgramCard: View {
         case .interview:
             return .green
         case .unknown:
-            return .gray
+            return .secondary
         case .maturaPoints:
             return .orange
         }
@@ -612,7 +612,7 @@ struct CategoryGridView: View {
                 }
             }
         }
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .cornerRadius(12)
     }
 }
@@ -713,7 +713,7 @@ struct UniversityCompactCard: View {
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.05), radius: 5)
     }
@@ -737,12 +737,12 @@ struct UniversityCompactCard: View {
             }
         } else {
             Circle()
-                .fill(Color.gray.opacity(0.1))
+                .fill(Color.secondary.opacity(0.1))
                 .frame(width: 50, height: 50)
                 .overlay(
                     Text(university.shortName ?? String(university.name.prefix(2)))
                         .font(.headline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                 )
         }
     }
@@ -788,7 +788,7 @@ struct MinimalistUniversityCard: View {
     }
     
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack(alignment: .bottomLeading) {
             // Background image or gradient
             if let imageURL = university.imageURL,
                !imageLoadFailed,
@@ -830,7 +830,7 @@ struct MinimalistUniversityCard: View {
             }
             
             // Content overlay
-            VStack(spacing: 4) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(university.shortName ?? university.name)
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white)
@@ -841,6 +841,7 @@ struct MinimalistUniversityCard: View {
                     .foregroundColor(.white.opacity(0.9))
             }
             .padding(.bottom, 12)
+            .padding(.leading, 12)
         }
         .frame(width: 140, height: 140)
         .cornerRadius(20)

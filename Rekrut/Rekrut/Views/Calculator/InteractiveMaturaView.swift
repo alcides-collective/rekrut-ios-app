@@ -9,6 +9,80 @@ import SwiftUI
 import UIKit
 
 struct InteractiveMaturaView: View {
+    @State private var showingProfile = false
+    @StateObject private var firebaseService = FirebaseService.shared
+    @State private var showNavBar = false
+    
+    var body: some View {
+        NavigationView {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Custom inline header
+                        HStack {
+                            Text("Kalkulator Maturalny")
+                                .font(.title)
+                                .fontWeight(.bold)
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                showingProfile = true
+                            }) {
+                                Image(systemName: firebaseService.isAuthenticated ? "person.crop.circle.fill" : "person.crop.circle")
+                                    .font(.title2)
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 10)
+                        .background(
+                            GeometryReader { geometry in
+                                Color.clear
+                                    .onChange(of: geometry.frame(in: .global).minY) { value in
+                                        withAnimation(.easeInOut(duration: 0.1)) {
+                                            showNavBar = value < 50
+                                        }
+                                    }
+                            }
+                        )
+                        
+                        MaturaCalculatorContentView()
+                    }
+                }
+            }
+            .navigationBarHidden(true)
+            .overlay(alignment: .top) {
+                // Navigation bar that appears on scroll
+                if showNavBar {
+                    VStack(spacing: 0) {
+                        Color.clear
+                            .frame(height: 50)
+                        
+                        HStack {
+                            Text("Kalkulator Maturalny")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .frame(height: 56)
+                        .background(.regularMaterial)
+                        .overlay(alignment: .bottom) {
+                            Divider()
+                        }
+                    }
+                    .ignoresSafeArea()
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+        }
+        .navigationViewStyle(StackNavigationViewStyle())
+        .sheet(isPresented: $showingProfile) {
+            ProfileView()
+        }
+    }
+}
+
+struct MaturaCalculatorContentView: View {
     @State private var basicScores: [String: Double] = [:]
     @State private var extendedScores: [String: Double] = [:]
     @StateObject private var firebaseService = FirebaseService.shared
@@ -50,23 +124,22 @@ struct InteractiveMaturaView: View {
         SubjectInfo(name: "J. łaciński", id: "latin", icon: "🏛️", color: .brown,
                    quote: "\"Verba volant, scripta manent\""),
         SubjectInfo(name: "J. białoruski", id: "belarus", icon: "🇧🇾", color: .red,
-                   quote: nil),
+                   quote: "\"Żywe Biełaruś!\" — narodowe hasło"),
         SubjectInfo(name: "J. litewski", id: "lithuanian", icon: "🇱🇹", color: .green,
-                   quote: nil),
+                   quote: "\"Tautos jėga – vienybėje\" — siła narodu w jedności"),
         SubjectInfo(name: "J. niemiecki", id: "german_minority", icon: "🇩🇪", color: .gray,
-                   quote: nil),
+                   quote: "\"Die Grenzen meiner Sprache bedeuten die Grenzen meiner Welt\" — L. Wittgenstein"),
         SubjectInfo(name: "J. ukraiński", id: "ukrainian", icon: "🇺🇦", color: .blue,
-                   quote: nil),
+                   quote: "\"Walczcie — zwyciężycie!\" — T. Szewczenko"),
         SubjectInfo(name: "J. kaszubski", id: "kashubian", icon: "⚓", color: .indigo,
-                   quote: nil),
+                   quote: "\"Nigdy do zguby nie przyjdzie, czyja mowa ojczysta nie zginie\" — J. Drzeżdżon"),
         SubjectInfo(name: "J. obcy dodatkowy", id: "foreign_additional", icon: "🗣️", color: .cyan,
-                   quote: nil)
+                   quote: "\"Kto zna dwa języki, żyje dwa życia\" — przysłowie czeskie")
     ]
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Basic level section
+        VStack(spacing: 20) {
+            // Basic level section
                 VStack(alignment: .leading, spacing: 8) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Poziom podstawowy")
@@ -139,14 +212,10 @@ struct InteractiveMaturaView: View {
                     }
                 }
                 
-                
                 Spacer(minLength: 40)
-            }
-            .padding()
         }
-        .background(Color(.systemGroupedBackground))
-        .navigationTitle("Kalkulator Maturalny")
-        .navigationBarTitleDisplayMode(.inline)
+        .padding()
+        .background(Color(.systemBackground))
         .onAppear {
             loadExistingScores()
             initializeScores()
@@ -279,87 +348,45 @@ struct CardStyleSlider: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            // Box with progress
+            // Box with dynamic background color
             ZStack {
-                // White background
+                // Background with dynamic color
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.white)
+                    .fill(score > 0 ? getColor().opacity(0.15) : Color(.systemBackground))
                     .frame(height: 80)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(score > 0 ? getColor().opacity(0.3) : Color.clear, lineWidth: 1)
+                    )
                     .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
                 
-                // Colored progress overlay
-                GeometryReader { geo in
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(getColor())
-                        .frame(width: geo.size.width * (score / 100), height: 80)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                
-                // Text content - we need two layers for the split effect
-                ZStack {
-                    // Black text and colorful emoji on white background
-                    HStack(spacing: 12) {
-                        Text(subject.icon)
-                            .font(.system(size: 32))
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(subject.name)
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                            
-                            if let quote = getQuote() {
-                                Text(quote)
-                                    .font(.caption2)
-                                    .italic()
-                                    .lineLimit(2)
-                            } else if isOptional {
-                                Text("Przedmiot dodatkowy")
-                                    .font(.caption2)
-                            }
-                        }
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal, 16)
-                    .foregroundColor(.black)
+                // Content
+                HStack(alignment: .center, spacing: 10) {
+                    Text(subject.icon)
+                        .font(.system(size: 28))
+                        .frame(width: 36)
                     
-                    // White text and monochrome emoji on colored background
-                    HStack(spacing: 12) {
-                        Text(subject.icon)
-                            .font(.system(size: 32))
-                            .grayscale(1)
-                            .brightness(0.3)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(subject.name)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
                         
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(subject.name)
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                            
-                            if let quote = getQuote() {
-                                Text(quote)
-                                    .font(.caption2)
-                                    .italic()
-                                    .lineLimit(2)
-                            } else if isOptional {
-                                Text("Przedmiot dodatkowy")
-                                    .font(.caption2)
-                            }
+                        if let quote = getQuote() {
+                            Text(quote)
+                                .font(.caption2)
+                                .italic()
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } else if isOptional {
+                            Text("Przedmiot dodatkowy")
+                                .font(.caption2)
                         }
-                        
-                        Spacer()
                     }
-                    .padding(.horizontal, 16)
-                    .foregroundColor(.white)
-                    .mask(
-                        GeometryReader { geo in
-                            HStack(spacing: 0) {
-                                Rectangle()
-                                    .frame(width: geo.size.width * (score / 100))
-                                Spacer()
-                            }
-                        }
-                    )
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .foregroundColor(.primary)
             }
             .frame(height: 80)
             
@@ -370,15 +397,15 @@ struct CardStyleSlider: View {
                     if textValue.isEmpty {
                         Text("—")
                             .font(.system(size: 24, weight: .regular, design: .monospaced))
-                            .foregroundColor(.gray.opacity(0.5))
-                            .frame(width: 55, height: 50)
+                            .foregroundColor(.secondary.opacity(0.5))
+                            .frame(width: 55, height: 80)
                     }
                     
                     TextField("", text: $textValue)
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
                         .font(.system(size: 24, weight: .semibold, design: .monospaced))
-                        .frame(width: 55, height: 50)
+                        .frame(width: 55, height: 80)
                         .onChange(of: textValue) { newValue in
                             // Only allow numbers
                             let filtered = newValue.filter { $0.isNumber }
@@ -401,11 +428,11 @@ struct CardStyleSlider: View {
                 }
                 .padding(.horizontal, 8)
                 .background(Color(.systemGray6))
-                .cornerRadius(8)
+                .cornerRadius(12)
                 
                 Text("%")
                     .font(.system(size: 20))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
             }
         }
         .padding(.bottom, 4)
@@ -429,18 +456,28 @@ struct CardStyleSlider: View {
     }
     
     func getColor() -> Color {
-        if score < 30 {
-            return Color(red: 0.9, green: 0.4, blue: 0.4)
-        } else if score < 70 {
-            let progress = (score - 30) / 40
-            return Color(
-                red: 0.9 - (progress * 0.4),
-                green: 0.8,
-                blue: 0.3 - (progress * 0.3)
-            )
+        // Smooth gradient from red (0%) through yellow (50%) to green (100%)
+        let normalizedScore = score / 100.0
+        
+        var red: Double = 0
+        var green: Double = 0
+        var blue: Double = 0
+        
+        if normalizedScore < 0.5 {
+            // Red to Yellow transition (0% to 50%)
+            let progress = normalizedScore * 2
+            red = 0.9 - (progress * 0.1)  // 0.9 to 0.8
+            green = 0.3 + (progress * 0.5) // 0.3 to 0.8
+            blue = 0.3 - (progress * 0.1)  // 0.3 to 0.2
         } else {
-            return Color(red: 0.4, green: 0.8, blue: 0.4)
+            // Yellow to Green transition (50% to 100%)
+            let progress = (normalizedScore - 0.5) * 2
+            red = 0.8 - (progress * 0.4)   // 0.8 to 0.4
+            green = 0.8                    // stays at 0.8
+            blue = 0.2 + (progress * 0.2)  // 0.2 to 0.4
         }
+        
+        return Color(red: red, green: green, blue: blue)
     }
     
     func getQuote() -> String? {

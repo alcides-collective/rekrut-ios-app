@@ -40,7 +40,7 @@ git push -u origin feature/branch-name
 ## 📱 Project Overview
 
 **Rekrut** - iOS app for Polish university applicants and students
-- **Platform**: iOS 15.0+ (Swift 5, SwiftUI)
+- **Platform**: iOS 16.0+ (Swift 5, SwiftUI)
 - **Architecture**: MVVM
 - **Backend**: Firebase (Auth, Firestore, Storage)
 - **UI Language**: Polish
@@ -79,9 +79,9 @@ Extensions/     # Swift extensions
 
 ### Code Style Preferences
 ```swift
-// iOS 15 compatibility - avoid iOS 16+ APIs
-.fontWeight(.bold)          // ✅ Use this
-.bold()                     // ❌ iOS 16+ only
+// iOS 16+ - can use newer APIs
+.bold()                     // ✅ Use this (iOS 16+)
+.fontWeight(.bold)          // ✅ Also works (backwards compatible)
 
 // Async/await pattern
 Task {
@@ -227,7 +227,7 @@ Realtime Database:
 2. Add ViewModel if complex logic needed
 3. Update navigation/sheets
 4. Add mock data if needed
-5. Test on iOS 15.0 simulator
+5. Test on iOS 16.0 simulator
 
 ### Firebase Operations
 ```swift
@@ -245,7 +245,7 @@ Task {
 ```
 
 ### Testing Checklist
-- [ ] iOS 15.0 compatibility
+- [ ] iOS 16.0 compatibility
 - [ ] Polish UI text correct
 - [ ] Animations smooth
 - [ ] Offline handling
@@ -264,6 +264,8 @@ Task {
 ## 📝 Recent Changes Log
 
 ### January 2025
+- Updated deployment target to iOS 16.0
+- Modernized code to use iOS 16+ APIs (.bold() instead of .fontWeight(.bold))
 - Redesigned AI Match with stable grid layout
 - Implemented Apple Sign In only authentication
 - Added dynamic formula-based calculations

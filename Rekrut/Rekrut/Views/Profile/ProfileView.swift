@@ -111,7 +111,7 @@ struct AuthenticatedProfileView: View {
         }
         .navigationTitle("Profil")
         .navigationBarTitleDisplayMode(.inline)
-        .background(Color.white)
+        .background(Color(.systemBackground))
     }
 }
 
@@ -140,7 +140,7 @@ struct UnauthenticatedProfileView: View {
                 
                 Text("Twój Profil")
                     .font(.largeTitle)
-                    .fontWeight(.bold)
+                    .bold()
                     .multilineTextAlignment(.center)
                 
                 Text("Zaloguj się, aby korzystać\nze wszystkich funkcji")
@@ -164,7 +164,7 @@ struct UnauthenticatedProfileView: View {
                 HStack(spacing: 8) {
                     ForEach(0..<features.count, id: \.self) { index in
                         Circle()
-                            .fill(index == currentFeatureIndex ? Color.blue : Color.gray.opacity(0.3))
+                            .fill(index == currentFeatureIndex ? Color.blue : Color.secondary.opacity(0.3))
                             .frame(width: 8, height: 8)
                             .animation(.easeInOut(duration: 0.3), value: currentFeatureIndex)
                     }

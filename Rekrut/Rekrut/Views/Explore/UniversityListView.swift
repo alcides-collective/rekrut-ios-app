@@ -95,11 +95,11 @@ struct UniversityListView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "building.columns")
                             .font(.system(size: 60))
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                         
                         Text("Nie znaleziono uczelni")
                             .font(.headline)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                         
                         Text("Spróbuj zmienić kryteria wyszukiwania")
                             .font(.subheadline)

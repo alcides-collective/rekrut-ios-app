@@ -38,8 +38,8 @@ class MockDataService {
             name: "Politechnika Warszawska",
             shortName: "PW",
             type: .technical,
-            city: "Wrocław",
-            voivodeship: "Dolnośląskie",
+            city: "Warszawa",
+            voivodeship: "Mazowieckie",
             address: "Wybrzeże Wyspiańskiego 27",
             website: "https://www.pw.edu.pl",
             logoURL: nil,
@@ -92,8 +92,8 @@ class MockDataService {
             name: "Szkoła Główna Handlowa",
             shortName: "SGH",
             type: .economic,
-            city: "Poznań",
-            voivodeship: "Wielkopolskie",
+            city: "Warszawa",
+            voivodeship: "Mazowieckie",
             address: "al. Niepodległości 10",
             website: "https://www.sgh.waw.pl",
             logoURL: nil,
@@ -110,8 +110,8 @@ class MockDataService {
             name: "Akademia Sztuk Pięknych w Warszawie",
             shortName: "ASP",
             type: .art,
-            city: "Gdańsk",
-            voivodeship: "Pomorskie",
+            city: "Warszawa",
+            voivodeship: "Mazowieckie",
             address: "Targ Węglowy 6",
             website: "https://www.asp.waw.pl",
             logoURL: nil,
@@ -128,8 +128,8 @@ class MockDataService {
             name: "Akademia Wychowania Fizycznego Józefa Piłsudskiego",
             shortName: "AWF",
             type: .sport,
-            city: "Katowice",
-            voivodeship: "Śląskie",
+            city: "Warszawa",
+            voivodeship: "Mazowieckie",
             address: "ul. Mikołowska 72A",
             website: "https://www.awf.edu.pl",
             logoURL: nil,
@@ -250,7 +250,8 @@ class MockDataService {
             description: "Program obejmuje zaawansowane algorytmy, struktury danych, programowanie obiektowe oraz sztuczną inteligencję. Studenci uczą się języków programowania takich jak Python, Java, C++ oraz technologii webowych. W trakcie studiów realizowane są projekty zespołowe oraz praktyki w firmach IT.",
             requirements: AdmissionRequirements(
                 description: "Najlepsza ocena z egzaminu maturalnego z przedmiotów ścisłych (matematyka rozszerzona, informatyka rozszerzona) przemnożona przez współczynnik 0.5, plus wynik z matematyki rozszerzonej przemnożony przez 0.3, plus wynik z języka angielskiego na poziomie rozszerzonym przemnożony przez 0.2. W przypadku braku egzaminu z informatyki, może być zastąpiona fizyką rozszerzoną.",
-                formula: "W = 0.5 * MAT_R + 0.3 * INF_R + 0.2 * ANG_R",
+                formula: FormulaFactory.createITFormula(universityId: "uw", programId: "uw-informatyka"),
+                formulaId: "uw-informatyka-formula",
                 minimumPoints: 80,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne", "Podanie"],
@@ -279,7 +280,8 @@ class MockDataService {
             description: "Program obejmuje prawo konstytucyjne, cywilne, karne, administracyjne oraz międzynarodowe. Studenci uczestniczą w symulacjach rozpraw sądowych i warsztatach z technik prawniczych. Studia przygotowują do egzaminów zawodowych na aplikacje prawnicze.",
             requirements: AdmissionRequirements(
                 description: "Suma wyników procentowych z języka polskiego na poziomie rozszerzonym (waga 0.4) oraz historii rozszerzonej (waga 0.3) i wiedzy o społeczeństwie rozszerzonej (waga 0.3). Kandydaci mogą zastąpić jeden z przedmiotów humanistycznych językiem łacińskim lub filozofią.",
-                formula: "W = 0.4 * POL_R + 0.3 * HIS_R + 0.3 * WOS_R",
+                formula: FormulaFactory.createLawFormula(universityId: "uw", programId: "uw-prawo"),
+                formulaId: "uw-prawo-formula",
                 minimumPoints: 75,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne", "Podanie"],
@@ -291,6 +293,8 @@ class MockDataService {
             availableSlots: 300,
             lastYearThreshold: 78.2,
             tags: ["Prawo karne", "Prawo cywilne", "Administracja"],
+            imageURL: "https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=800",
+            thumbnailURL: "https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=400",
             applicationURL: "https://irk.uw.edu.pl/kierunki/prawo"
         ),
         // PW Programs
@@ -306,7 +310,18 @@ class MockDataService {
             description: "Program łączy informatykę z inżynierią systemów, obejmując projektowanie oprogramowania, sieci komputerowe i systemy wbudowane. Studenci realizują projekty z cyberbezpieczeństwa, IoT oraz uczą się metodyk zarządzania projektami IT. Nacisk kładziony jest na praktyczne umiejętności inżynierskie.",
             requirements: AdmissionRequirements(
                 description: "Wynik egzaminu z matematyki rozszerzonej stanowi 60% oceny końcowej, fizyka rozszerzona 30%, a język angielski na poziomie podstawowym 10%. Kandydaci z olimpiad przedmiotowych (matematyka, fizyka, informatyka) otrzymują maksymalną punktację.",
-                formula: "W = 0.6 * MAT_R + 0.3 * FIZ_R + 0.1 * ANG_P",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "pw",
+                    programId: "pw-informatyka",
+                    components: [
+                        (subject: "MAT", level: "R", weight: 0.6),
+                        (subject: "FIZ", level: "R", weight: 0.3),
+                        (subject: "ANG", level: "P", weight: 0.1)
+                    ],
+                    mandatorySubjects: ["MAT"],
+                    lastYearThreshold: 88.3
+                ),
+                formulaId: "pw-informatyka-formula",
                 minimumPoints: 85,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne", "Podanie"],
@@ -333,7 +348,8 @@ class MockDataService {
             description: "Program obejmuje anatomię, fizjologię, biochemię, farmakologię oraz przedmioty kliniczne. Studenci odbywają praktyki w szpitalach uniwersyteckich, ucząc się diagnostyki i leczenia. Ostatnie lata studiów poświęcone są specjalizacjom medycznym i przygotowaniu do LEK.",
             requirements: AdmissionRequirements(
                 description: "Punktacja opiera się na wynikach z biologii rozszerzonej (40%), chemii rozszerzonej (40%) oraz matematyki rozszerzonej (20%). Dodatkowo kandydaci muszą zdać test predyspozycji zawodowych. Laureaci olimpiad biologicznych i chemicznych przyjmowani są poza limitem miejsc.",
-                formula: "W = 0.4 * BIO_R + 0.4 * CHE_R + 0.2 * MAT_R",
+                formula: FormulaFactory.createMedicineFormula(universityId: "uj", programId: "uj-medycyna"),
+                formulaId: "uj-medycyna-formula",
                 minimumPoints: 90,
                 additionalExams: ["Test predyspozycji"],
                 documents: ["Świadectwo maturalne", "Zaświadczenie lekarskie", "Podanie"],
@@ -344,7 +360,9 @@ class MockDataService {
             tuitionFee: 0,
             availableSlots: 150,
             lastYearThreshold: 92.7,
-            tags: ["Chirurgia", "Pediatria", "Kardiologia"]
+            tags: ["Chirurgia", "Pediatria", "Kardiologia"],
+            imageURL: "https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=800",
+            thumbnailURL: "https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=400"
         ),
         // SGH Programs
         StudyProgram(
@@ -359,7 +377,18 @@ class MockDataService {
             description: "Program obejmuje mikroekonomię, makroekonomię, ekonometrię oraz finanse międzynarodowe. Studenci uczą się analizy rynków finansowych, zarządzania ryzykiem i modelowania ekonomicznego. Studia zawierają case studies z realnego biznesu oraz współpracę z przedsiębiorstwami.",
             requirements: AdmissionRequirements(
                 description: "Rekrutacja uwzględnia wyniki z matematyki rozszerzonej (współczynnik 0.5), geografii rozszerzonej lub wiedzy o społeczeństwie (współczynnik 0.3) oraz języka angielskiego na poziomie rozszerzonym (współczynnik 0.2). Mile widziane są dodatkowe certyfikaty językowe.",
-                formula: "W = 0.5 * MAT_R + 0.3 * GEO_R + 0.2 * ANG_R",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "sgh",
+                    programId: "sgh-ekonomia",
+                    components: [
+                        (subject: "MAT", level: "R", weight: 0.5),
+                        (subject: "GEO", level: "R", weight: 0.3),
+                        (subject: "ANG", level: "R", weight: 0.2)
+                    ],
+                    mandatorySubjects: ["MAT"],
+                    lastYearThreshold: 73.5
+                ),
+                formulaId: "sgh-ekonomia-formula",
                 minimumPoints: 70,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne", "Podanie"],
@@ -385,7 +414,18 @@ class MockDataService {
             description: "Program łączy informatykę teoretyczną z zastosowaniami w przemyśle, obejmując big data, uczenie maszynowe i robotykę. Studenci realizują projekty we współpracy z firmami technologicznymi oraz korzystają z nowoczesnych laboratoriów. Nacisk położony jest na rozwiązywanie rzeczywistych problemów inżynierskich.",
             requirements: AdmissionRequirements(
                 description: "Proces rekrutacji uwzględnia wyniki z matematyki rozszerzonej (50% punktacji), informatyki rozszerzonej lub fizyki rozszerzonej (30% punktacji) oraz fizyki rozszerzonej lub chemii rozszerzonej (20% punktacji). Kandydaci mogą przedstawić certyfikaty ukończenia kursów programowania jako dodatkowe atuty.",
-                formula: "W = 0.5 * MAT_R + 0.3 * INF_R + 0.2 * FIZ_R",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "agh",
+                    programId: "agh-informatyka",
+                    components: [
+                        (subject: "MAT", level: "R", weight: 0.5),
+                        (subject: "INF", level: "R", weight: 0.3),
+                        (subject: "FIZ", level: "R", weight: 0.2)
+                    ],
+                    mandatorySubjects: ["MAT"],
+                    lastYearThreshold: 84.0
+                ),
+                formulaId: "agh-informatyka-formula",
                 minimumPoints: 82,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne", "Podanie"],
@@ -412,7 +452,14 @@ class MockDataService {
             description: "Nowy kierunek łączący psychologię z neuronauką. Program obejmuje zaawansowane metody diagnostyki neuropsychologicznej, terapię pacjentów z uszkodzeniami mózgu oraz badania nad funkcjonowaniem poznawczym.",
             requirements: AdmissionRequirements(
                 description: "Rekrutacja dla absolwentów psychologii lub kierunków pokrewnych. Wymagany jest dyplom licencjata z psychologii lub nauk kognitywnych. Rozmowa kwalifikacyjna obejmuje zagadnienia z neurobiologii i metod badawczych.",
-                formula: "Średnia ze studiów I stopnia * 10 + punkty za rozmowę kwalifikacyjną",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "uw",
+                    programId: "uw-new-psychology",
+                    components: [],
+                    mandatorySubjects: [],
+                    lastYearThreshold: nil
+                ),
+                formulaId: "uw-new-psychology-formula",
                 minimumPoints: nil,
                 additionalExams: ["Rozmowa kwalifikacyjna"],
                 documents: ["Dyplom licencjata", "Suplement do dyplomu", "CV", "List motywacyjny"],
@@ -439,7 +486,14 @@ class MockDataService {
             description: "Prestiżowy kierunek kształcący przyszłych reżyserów filmowych. Program obejmuje warsztaty z technik filmowych, historię kina, scenopisarstwo oraz realizację własnych projektów filmowych. Absolwenci pracują w kinematografii, telewizji i platformach streamingowych.",
             requirements: AdmissionRequirements(
                 description: "Rekrutacja wieloetapowa obejmująca ocenę portfolio, egzaminy praktyczne i teoretyczne. Kandydaci przesyłają portfolio z własnymi pracami filmowymi lub scenariuszami. Egzamin praktyczny polega na realizacji krótkiej etiudy filmowej. Egzamin teoretyczny sprawdza wiedzę o kinie i kulturze.",
-                formula: "Ocena portfolio (40%) + Egzamin praktyczny (40%) + Egzamin teoretyczny (20%)",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "pw",
+                    programId: "lodz-film-directing",
+                    components: [],
+                    mandatorySubjects: [],
+                    lastYearThreshold: nil
+                ),
+                formulaId: "lodz-film-directing-formula",
                 minimumPoints: nil,
                 additionalExams: ["Portfolio", "Egzamin praktyczny - realizacja etiudy", "Egzamin teoretyczny z historii kina", "Rozmowa kwalifikacyjna"],
                 documents: ["Świadectwo maturalne", "Portfolio prac", "List motywacyjny", "CV artystyczne"],
@@ -479,7 +533,8 @@ class MockDataService {
             description: "Program łączy sztukę z inżynierią, kształcąc architektów przygotowanych do projektowania przestrzeni miejskich i budynków. Studenci uczą się projektowania architektonicznego, urbanistyki, historii architektury oraz wykorzystania nowoczesnych technologii w projektowaniu.",
             requirements: AdmissionRequirements(
                 description: "Rekrutacja dwuetapowa: punkty maturalne oraz egzamin z rysunku i kompozycji przestrzennej. Ocena z egzaminu maturalnego stanowi 50% wyniku końcowego, a egzamin wstępny 50%.",
-                formula: "W = 0.5 * (0.4 * MAT_R + 0.3 * FIZ_R + 0.3 * J.OBC_R) + 0.5 * Egzamin_rysunku",
+                formula: FormulaFactory.createArchitectureFormula(universityId: "pw", programId: "pw-architecture"),
+                formulaId: "pw-architecture-formula",
                 minimumPoints: 70,
                 additionalExams: ["Egzamin z rysunku odręcznego", "Test z wyobraźni przestrzennej"],
                 documents: ["Świadectwo maturalne", "Podanie", "Portfolio prac plastycznych (opcjonalnie)"],
@@ -517,7 +572,14 @@ class MockDataService {
             description: "6-letni program medyczny w języku angielskim dla studentów międzynarodowych i polskich. Program przygotowuje do międzynarodowej kariery lekarskiej z możliwością specjalizacji w wielu krajach.",
             requirements: AdmissionRequirements(
                 description: "Szczegółowe kryteria rekrutacji nie zostały jeszcze opublikowane. Prosimy o regularne sprawdzanie strony uczelni lub kontakt z biurem rekrutacji.",
-                formula: "Brak informacji",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "uj",
+                    programId: "unknown-medicine-private",
+                    components: [],
+                    mandatorySubjects: [],
+                    lastYearThreshold: nil
+                ),
+                formulaId: "unknown-medicine-private-formula",
                 minimumPoints: nil,
                 additionalExams: [],
                 documents: ["Dokładna lista dokumentów zostanie opublikowana"],
@@ -529,6 +591,8 @@ class MockDataService {
             availableSlots: nil,
             lastYearThreshold: nil,
             tags: ["Medycyna", "Studia anglojęzyczne", "International", "Medicine"],
+            imageURL: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800",
+            thumbnailURL: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400",
             applicationURL: "https://medicine.uj.edu.pl/en/admission"
         ),
         // Music Academy - Portfolio based
@@ -545,7 +609,14 @@ class MockDataService {
             description: "Kształcenie profesjonalnych pianistów na najwyższym poziomie artystycznym. Program obejmuje indywidualne lekcje z mistrzami fortepianu, występy publiczne oraz teoretyczne podstawy muzyki.",
             requirements: AdmissionRequirements(
                 description: "Rekrutacja oparta na przesłuchaniach. Kandydaci wykonują program obejmujący utwory z różnych epok, w tym etiudę koncertową, sonatę klasyczną oraz utwór dowolny.",
-                formula: "Ocena przesłuchania przez komisję",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "uw",
+                    programId: "academy-music-piano",
+                    components: [],
+                    mandatorySubjects: [],
+                    lastYearThreshold: nil
+                ),
+                formulaId: "academy-music-piano-formula",
                 minimumPoints: nil,
                 additionalExams: ["Przesłuchanie - program 45 minut", "Egzamin z kształcenia słuchu", "Egzamin z harmonii"],
                 documents: ["Świadectwo maturalne", "CV artystyczne", "Lista repertuaru", "Nagrania (opcjonalnie)"],
@@ -566,7 +637,9 @@ class MockDataService {
             tuitionFee: 0,
             availableSlots: 8,
             lastYearThreshold: nil,
-            tags: ["Fortepian", "Muzyka klasyczna", "Koncerty", "Sztuka"]
+            tags: ["Fortepian", "Muzyka klasyczna", "Koncerty", "Sztuka"],
+            imageURL: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=800",
+            thumbnailURL: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=400"
         ),
         
         // Additional 20 programs with working images
@@ -585,7 +658,18 @@ class MockDataService {
             description: "Interdyscyplinarne studia łączące biologię molekularną, genetykę i technologie przemysłowe",
             requirements: AdmissionRequirements(
                 description: "Rekrutacja na podstawie wyników matury z biologii i chemii",
-                formula: "W = 0.4 * BIO_R + 0.4 * CHEM_R + 0.2 * MAT",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "uw",
+                    programId: "uw-biotechnology",
+                    components: [
+                        (subject: "BIO", level: "R", weight: 0.4),
+                        (subject: "CHEM", level: "R", weight: 0.4),
+                        (subject: "MAT", level: "P", weight: 0.2)
+                    ],
+                    mandatorySubjects: ["BIO", "CHEM"],
+                    lastYearThreshold: 78.3
+                ),
+                formulaId: "uw-biotechnology-formula",
                 minimumPoints: 75,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne"],
@@ -615,7 +699,18 @@ class MockDataService {
             description: "Analiza danych, uczenie maszynowe i big data",
             requirements: AdmissionRequirements(
                 description: "Wymagana matematyka rozszerzona i informatyka lub fizyka",
-                formula: "W = 0.5 * MAT_R + 0.3 * INF_R + 0.2 * ANG",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "pw",
+                    programId: "pw-data-science",
+                    components: [
+                        (subject: "MAT", level: "R", weight: 0.5),
+                        (subject: "INF", level: "R", weight: 0.3),
+                        (subject: "ANG", level: "P", weight: 0.2)
+                    ],
+                    mandatorySubjects: ["MAT"],
+                    lastYearThreshold: 82.7
+                ),
+                formulaId: "pw-data-science-formula",
                 minimumPoints: 80,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne"],
@@ -645,7 +740,18 @@ class MockDataService {
             description: "Studia przygotowujące do pracy jako lekarz weterynarii",
             requirements: AdmissionRequirements(
                 description: "Wymagane przedmioty: biologia i chemia rozszerzone",
-                formula: "W = 0.4 * BIO_R + 0.4 * CHEM_R + 0.2 * J.POL",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "uw",
+                    programId: "sggw-veterinary",
+                    components: [
+                        (subject: "BIO", level: "R", weight: 0.4),
+                        (subject: "CHEM", level: "R", weight: 0.4),
+                        (subject: "POL", level: "P", weight: 0.2)
+                    ],
+                    mandatorySubjects: ["BIO", "CHEM"],
+                    lastYearThreshold: 88.2
+                ),
+                formulaId: "sggw-veterinary-formula",
                 minimumPoints: 85,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne", "Zaświadczenie lekarskie"],
@@ -675,7 +781,18 @@ class MockDataService {
             description: "Polityka międzynarodowa, dyplomacja i organizacje międzynarodowe",
             requirements: AdmissionRequirements(
                 description: "Punkty z historii, WOS-u lub geografii",
-                formula: "W = 0.4 * HIST + 0.3 * WOS + 0.3 * J.OBC_R",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "uw",
+                    programId: "uw-international-relations",
+                    components: [
+                        (subject: "HIS", level: "P", weight: 0.4),
+                        (subject: "WOS", level: "P", weight: 0.3),
+                        (subject: "J.OBC", level: "R", weight: 0.3)
+                    ],
+                    mandatorySubjects: [],
+                    lastYearThreshold: 73.5
+                ),
+                formulaId: "uw-international-relations-formula",
                 minimumPoints: 70,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne"],
@@ -705,7 +822,14 @@ class MockDataService {
             description: "Projektowanie ubioru, tkanin i akcesoriów modowych",
             requirements: AdmissionRequirements(
                 description: "Egzamin praktyczny z rysunku i projektowania",
-                formula: "",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "asp",
+                    programId: "asp-fashion",
+                    components: [],
+                    mandatorySubjects: [],
+                    lastYearThreshold: nil
+                ),
+                formulaId: "asp-fashion-formula",
                 minimumPoints: nil,
                 additionalExams: ["Egzamin z rysunku", "Projekt kolekcji", "Portfolio"],
                 documents: ["Świadectwo maturalne", "Portfolio prac"],
@@ -741,7 +865,18 @@ class MockDataService {
             description: "Ochrona środowiska, oczyszczanie wody i powietrza, energia odnawialna",
             requirements: AdmissionRequirements(
                 description: "Matematyka i fizyka lub chemia",
-                formula: "W = 0.4 * MAT_R + 0.3 * FIZ + 0.3 * CHEM",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "pw",
+                    programId: "pw-environmental",
+                    components: [
+                        (subject: "MAT", level: "R", weight: 0.4),
+                        (subject: "FIZ", level: "P", weight: 0.3),
+                        (subject: "CHEM", level: "P", weight: 0.3)
+                    ],
+                    mandatorySubjects: ["MAT"],
+                    lastYearThreshold: 68.4
+                ),
+                formulaId: "pw-environmental-formula",
                 minimumPoints: 65,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne"],
@@ -771,7 +906,17 @@ class MockDataService {
             description: "Kompleksowe studia przygotowujące do zawodu fizjoterapeuty",
             requirements: AdmissionRequirements(
                 description: "Biologia i test sprawności fizycznej",
-                formula: "W = 0.5 * BIO + 0.3 * TEST_SPRAWNOSCI + 0.2 * J.POL",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "awf",
+                    programId: "awf-physiotherapy",
+                    components: [
+                        (subject: "BIO", level: "P", weight: 0.5),
+                        (subject: "POL", level: "P", weight: 0.2)
+                    ],
+                    mandatorySubjects: ["BIO"],
+                    lastYearThreshold: 74.8
+                ),
+                formulaId: "awf-physiotherapy-formula",
                 minimumPoints: 70,
                 additionalExams: ["Test sprawności fizycznej"],
                 documents: ["Świadectwo maturalne", "Zaświadczenie lekarskie"],
@@ -783,8 +928,8 @@ class MockDataService {
             availableSlots: 80,
             lastYearThreshold: 74.8,
             tags: ["Rehabilitacja", "Medycyna sportowa", "Masaż"],
-            imageURL: "https://images.unsplash.com/photo-1609188076864-c35269136b09?w=800",
-            thumbnailURL: "https://images.unsplash.com/photo-1609188076864-c35269136b09?w=400"
+            imageURL: "https://images.unsplash.com/photo-1559034750-cdab70a66b8e?w=800",
+            thumbnailURL: "https://images.unsplash.com/photo-1559034750-cdab70a66b8e?w=400"
         ),
         
         // 8. Game Development
@@ -801,7 +946,18 @@ class MockDataService {
             description: "Unity, Unreal Engine, projektowanie rozgrywki i grafiki",
             requirements: AdmissionRequirements(
                 description: "Matematyka i informatyka",
-                formula: "W = 0.5 * MAT_R + 0.4 * INF_R + 0.1 * ANG",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "pw",
+                    programId: "pw-game-dev",
+                    components: [
+                        (subject: "MAT", level: "R", weight: 0.5),
+                        (subject: "INF", level: "R", weight: 0.4),
+                        (subject: "ANG", level: "P", weight: 0.1)
+                    ],
+                    mandatorySubjects: ["MAT"],
+                    lastYearThreshold: 79.2
+                ),
+                formulaId: "pw-game-dev-formula",
                 minimumPoints: 75,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne"],
@@ -831,7 +987,18 @@ class MockDataService {
             description: "Media tradycyjne i cyfrowe, dziennikarstwo śledcze, PR",
             requirements: AdmissionRequirements(
                 description: "Polski i historia lub WOS",
-                formula: "W = 0.4 * J.POL_R + 0.3 * HIST + 0.3 * WOS",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "uw",
+                    programId: "uw-journalism",
+                    components: [
+                        (subject: "POL", level: "R", weight: 0.4),
+                        (subject: "HIS", level: "P", weight: 0.3),
+                        (subject: "WOS", level: "P", weight: 0.3)
+                    ],
+                    mandatorySubjects: ["POL"],
+                    lastYearThreshold: 69.7
+                ),
+                formulaId: "uw-journalism-formula",
                 minimumPoints: 65,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne"],
@@ -861,7 +1028,18 @@ class MockDataService {
             description: "Projektowanie samolotów, dronów i technologii kosmicznych",
             requirements: AdmissionRequirements(
                 description: "Matematyka i fizyka rozszerzone",
-                formula: "W = 0.5 * MAT_R + 0.4 * FIZ_R + 0.1 * ANG",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "pw",
+                    programId: "pw-aerospace",
+                    components: [
+                        (subject: "MAT", level: "R", weight: 0.5),
+                        (subject: "FIZ", level: "R", weight: 0.4),
+                        (subject: "ANG", level: "P", weight: 0.1)
+                    ],
+                    mandatorySubjects: ["MAT", "FIZ"],
+                    lastYearThreshold: 87.9
+                ),
+                formulaId: "pw-aerospace-formula",
                 minimumPoints: 85,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne"],
@@ -891,7 +1069,18 @@ class MockDataService {
             description: "Zarządzanie gastronomią, technologia żywności, kulinaria",
             requirements: AdmissionRequirements(
                 description: "Chemia lub biologia",
-                formula: "W = 0.5 * CHEM + 0.3 * BIO + 0.2 * J.POL",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "sgh",
+                    programId: "sggw-culinary",
+                    components: [
+                        (subject: "CHEM", level: "P", weight: 0.5),
+                        (subject: "BIO", level: "P", weight: 0.3),
+                        (subject: "POL", level: "P", weight: 0.2)
+                    ],
+                    mandatorySubjects: [],
+                    lastYearThreshold: 62.3
+                ),
+                formulaId: "sggw-culinary-formula",
                 minimumPoints: 60,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne"],
@@ -921,7 +1110,14 @@ class MockDataService {
             description: "Projektowanie przestrzeni mieszkalnych i komercyjnych",
             requirements: AdmissionRequirements(
                 description: "Egzamin z rysunku i projektu",
-                formula: "",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "asp",
+                    programId: "asp-interior",
+                    components: [],
+                    mandatorySubjects: [],
+                    lastYearThreshold: nil
+                ),
+                formulaId: "asp-interior-formula",
                 minimumPoints: nil,
                 additionalExams: ["Rysunek", "Projekt wnętrza", "Portfolio"],
                 documents: ["Świadectwo maturalne", "Portfolio"],
@@ -957,7 +1153,18 @@ class MockDataService {
             description: "Fotowoltaika, energia wiatrowa, wodorowa i geotermalna",
             requirements: AdmissionRequirements(
                 description: "Matematyka i fizyka",
-                formula: "W = 0.5 * MAT_R + 0.4 * FIZ_R + 0.1 * CHEM",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "agh",
+                    programId: "agh-renewable",
+                    components: [
+                        (subject: "MAT", level: "R", weight: 0.5),
+                        (subject: "FIZ", level: "R", weight: 0.4),
+                        (subject: "CHEM", level: "P", weight: 0.1)
+                    ],
+                    mandatorySubjects: ["MAT"],
+                    lastYearThreshold: 72.6
+                ),
+                formulaId: "agh-renewable-formula",
                 minimumPoints: 70,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne"],
@@ -987,7 +1194,17 @@ class MockDataService {
             description: "Marketing sportowy, organizacja imprez, zarządzanie klubami",
             requirements: AdmissionRequirements(
                 description: "Matura i test sprawności",
-                formula: "W = 0.4 * J.POL + 0.3 * MAT + 0.3 * TEST",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "awf",
+                    programId: "awf-management",
+                    components: [
+                        (subject: "POL", level: "P", weight: 0.4),
+                        (subject: "MAT", level: "P", weight: 0.3)
+                    ],
+                    mandatorySubjects: [],
+                    lastYearThreshold: 67.8
+                ),
+                formulaId: "awf-management-formula",
                 minimumPoints: 65,
                 additionalExams: ["Test sprawności fizycznej"],
                 documents: ["Świadectwo maturalne", "Zaświadczenie lekarskie"],
@@ -1017,7 +1234,18 @@ class MockDataService {
             description: "Bezpieczeństwo sieci, kryptografia, ethical hacking",
             requirements: AdmissionRequirements(
                 description: "Matematyka i informatyka rozszerzone",
-                formula: "W = 0.5 * MAT_R + 0.4 * INF_R + 0.1 * ANG",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "pw",
+                    programId: "pw-cybersecurity",
+                    components: [
+                        (subject: "MAT", level: "R", weight: 0.5),
+                        (subject: "INF", level: "R", weight: 0.4),
+                        (subject: "ANG", level: "P", weight: 0.1)
+                    ],
+                    mandatorySubjects: ["MAT"],
+                    lastYearThreshold: 83.4
+                ),
+                formulaId: "pw-cybersecurity-formula",
                 minimumPoints: 80,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne"],
@@ -1047,7 +1275,14 @@ class MockDataService {
             description: "Animacja 2D, 3D, motion graphics, efekty specjalne",
             requirements: AdmissionRequirements(
                 description: "Portfolio i egzamin praktyczny",
-                formula: "",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "asp",
+                    programId: "asp-animation",
+                    components: [],
+                    mandatorySubjects: [],
+                    lastYearThreshold: nil
+                ),
+                formulaId: "asp-animation-formula",
                 minimumPoints: nil,
                 additionalExams: ["Portfolio", "Projekt animacji", "Rysunek"],
                 documents: ["Świadectwo maturalne", "Portfolio prac"],
@@ -1083,7 +1318,18 @@ class MockDataService {
             description: "Pomoc społeczna, interwencja kryzysowa, polityka społeczna",
             requirements: AdmissionRequirements(
                 description: "Polski i WOS lub historia",
-                formula: "W = 0.4 * J.POL + 0.3 * WOS + 0.3 * HIST",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "uw",
+                    programId: "uw-social-work",
+                    components: [
+                        (subject: "POL", level: "P", weight: 0.4),
+                        (subject: "WOS", level: "P", weight: 0.3),
+                        (subject: "HIS", level: "P", weight: 0.3)
+                    ],
+                    mandatorySubjects: ["POL"],
+                    lastYearThreshold: 58.2
+                ),
+                formulaId: "uw-social-work-formula",
                 minimumPoints: 55,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne"],
@@ -1099,7 +1345,48 @@ class MockDataService {
             thumbnailURL: "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400"
         ),
         
-        // 18. Robotics
+        // 18. Criminology
+        StudyProgram(
+            id: "uw-criminology",
+            universityId: "uw",
+            name: "Kryminologia",
+            faculty: "Wydział Stosowanych Nauk Społecznych i Resocjalizacji",
+            field: "Kryminologia",
+            degree: .bachelor,
+            mode: .stationary,
+            duration: 6,
+            language: "Polski",
+            description: "Interdyscyplinarne studia łączące prawo, psychologię i socjologię. Program obejmuje kryminalistykę, wiktymologię, profilowanie kryminalne oraz systemy penitencjarne. Absolwenci pracują w policji, służbach specjalnych, wymiarze sprawiedliwości i instytucjach resocjalizacyjnych.",
+            requirements: AdmissionRequirements(
+                description: "Wyniki z języka polskiego, WOS-u lub historii oraz matematyki podstawowej",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "uw",
+                    programId: "uw-criminology",
+                    components: [
+                        (subject: "POL", level: "P", weight: 0.4),
+                        (subject: "WOS", level: "P", weight: 0.3),
+                        (subject: "MAT", level: "P", weight: 0.3)
+                    ],
+                    mandatorySubjects: ["POL"],
+                    lastYearThreshold: 65.3
+                ),
+                formulaId: "uw-criminology-formula",
+                minimumPoints: 60,
+                additionalExams: [],
+                documents: ["Świadectwo maturalne"],
+                deadlineDate: Date(timeIntervalSinceNow: 60*60*24*90),
+                admissionType: .maturaPoints,
+                entranceExamDetails: nil
+            ),
+            tuitionFee: 0,
+            availableSlots: 100,
+            lastYearThreshold: 65.3,
+            tags: ["Kryminalistyka", "Profilowanie", "Policja", "Bezpieczeństwo"],
+            imageURL: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800",
+            thumbnailURL: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=400"
+        ),
+        
+        // 19. Robotics
         StudyProgram(
             id: "pw-robotics",
             universityId: "pw",
@@ -1113,7 +1400,18 @@ class MockDataService {
             description: "Projektowanie robotów, automatyka, sztuczna inteligencja",
             requirements: AdmissionRequirements(
                 description: "Matematyka, fizyka i informatyka",
-                formula: "W = 0.4 * MAT_R + 0.3 * FIZ_R + 0.3 * INF",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "pw",
+                    programId: "pw-robotics",
+                    components: [
+                        (subject: "MAT", level: "R", weight: 0.4),
+                        (subject: "FIZ", level: "R", weight: 0.3),
+                        (subject: "INF", level: "P", weight: 0.3)
+                    ],
+                    mandatorySubjects: ["MAT"],
+                    lastYearThreshold: 81.5
+                ),
+                formulaId: "pw-robotics-formula",
                 minimumPoints: 78,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne"],
@@ -1143,7 +1441,18 @@ class MockDataService {
             description: "Studia przygotowujące do zawodu lekarza dentysty",
             requirements: AdmissionRequirements(
                 description: "Biologia, chemia i fizyka lub matematyka",
-                formula: "W = 0.4 * BIO_R + 0.4 * CHEM_R + 0.2 * FIZ",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "uj",
+                    programId: "uj-dentistry",
+                    components: [
+                        (subject: "BIO", level: "R", weight: 0.4),
+                        (subject: "CHEM", level: "R", weight: 0.4),
+                        (subject: "FIZ", level: "P", weight: 0.2)
+                    ],
+                    mandatorySubjects: ["BIO", "CHEM"],
+                    lastYearThreshold: 92.1
+                ),
+                formulaId: "uj-dentistry-formula",
                 minimumPoints: 90,
                 additionalExams: [],
                 documents: ["Świadectwo maturalne"],
@@ -1173,7 +1482,14 @@ class MockDataService {
             description: "Produkcja muzyczna, nagrania studyjne, postprodukcja",
             requirements: AdmissionRequirements(
                 description: "Egzamin praktyczny ze słuchu i wiedzy muzycznej",
-                formula: "",
+                formula: FormulaFactory.createSimpleFormula(
+                    universityId: "uw",
+                    programId: "uw-music-production",
+                    components: [],
+                    mandatorySubjects: [],
+                    lastYearThreshold: nil
+                ),
+                formulaId: "uw-music-production-formula",
                 minimumPoints: nil,
                 additionalExams: ["Test słuchu", "Teoria muzyki", "Portfolio nagrań"],
                 documents: ["Świadectwo maturalne", "Portfolio"],

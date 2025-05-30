@@ -37,7 +37,7 @@ struct LoginView: View {
                     VStack(spacing: 8) {
                         Text("Rekrut")
                             .font(.largeTitle)
-                            .fontWeight(.bold)
+                            .bold()
                         
                         Text("Twój przewodnik po studiach")
                             .font(.title3)
@@ -60,7 +60,7 @@ struct LoginView: View {
                     HStack(spacing: 8) {
                         ForEach(0..<benefits.count, id: \.self) { index in
                             Circle()
-                                .fill(index == currentBenefitIndex ? Color.blue : Color.gray.opacity(0.3))
+                                .fill(index == currentBenefitIndex ? Color.blue : Color.secondary.opacity(0.3))
                                 .frame(width: 8, height: 8)
                                 .animation(.easeInOut(duration: 0.3), value: currentBenefitIndex)
                         }

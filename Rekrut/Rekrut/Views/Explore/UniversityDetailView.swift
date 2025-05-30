@@ -75,13 +75,13 @@ struct UniversityHeaderView: View {
                 .overlay(
                     Text(university.shortName ?? String(university.name.prefix(2)))
                         .font(.largeTitle)
-                        .fontWeight(.bold)
+                        .bold()
                         .foregroundColor(.blue)
                 )
             
             Text(university.name)
                 .font(.title2)
-                .fontWeight(.bold)
+                .bold()
                 .multilineTextAlignment(.center)
             
             HStack(spacing: 20) {
@@ -286,8 +286,8 @@ struct ProgramCardView: View {
                 return .red
             }
         }
-        // Gray color if no user data entered
-        return .gray
+        // Secondary color if no user data entered
+        return .secondary
     }
     
     var body: some View {
@@ -331,7 +331,7 @@ struct ProgramCardView: View {
                             Text("Wprowadź maturę")
                                 .font(.caption)
                                 .fontWeight(.medium)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondary)
                         } else {
                             Text("\(Int(threshold)) pkt")
                                 .font(.caption)
@@ -343,7 +343,7 @@ struct ProgramCardView: View {
                     Text("Brak danych")
                         .font(.caption)
                         .fontWeight(.medium)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                 }
             }
         }

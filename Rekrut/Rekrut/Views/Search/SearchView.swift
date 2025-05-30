@@ -8,9 +8,83 @@
 import SwiftUI
 
 struct SearchView: View {
+    @State private var showingProfile = false
+    @StateObject private var firebaseService = FirebaseService.shared
+    @State private var showNavBar = false
+    
+    var body: some View {
+        NavigationView {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Custom inline header
+                        HStack {
+                            Text("Szukaj")
+                                .font(.title)
+                                .fontWeight(.bold)
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                showingProfile = true
+                            }) {
+                                Image(systemName: firebaseService.isAuthenticated ? "person.crop.circle.fill" : "person.crop.circle")
+                                    .font(.title2)
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 10)
+                        .background(
+                            GeometryReader { geometry in
+                                Color.clear
+                                    .onChange(of: geometry.frame(in: .global).minY) { value in
+                                        withAnimation(.easeInOut(duration: 0.1)) {
+                                            showNavBar = value < 50
+                                        }
+                                    }
+                            }
+                        )
+                        
+                        SearchContentView()
+                    }
+                }
+            }
+            .navigationBarHidden(true)
+            .overlay(alignment: .top) {
+                // Navigation bar that appears on scroll
+                if showNavBar {
+                    VStack(spacing: 0) {
+                        Color.clear
+                            .frame(height: 50)
+                        
+                        HStack {
+                            Text("Szukaj")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .frame(height: 56)
+                        .background(.regularMaterial)
+                        .overlay(alignment: .bottom) {
+                            Divider()
+                        }
+                    }
+                    .ignoresSafeArea()
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+        }
+        .navigationViewStyle(StackNavigationViewStyle())
+        .sheet(isPresented: $showingProfile) {
+            ProfileView()
+        }
+    }
+}
+
+struct SearchContentView: View {
     @State private var searchText = ""
-    @State private var programs: [StudyProgram] = []
-    @State private var universities: [University] = []
+    @State private var programs: [StudyProgram] = MockDataService.shared.mockPrograms
+    @State private var universities: [University] = MockDataService.shared.mockUniversities
     @State private var recentSearches: [String] = []
     @State private var popularSearches = ["Informatyka", "Medycyna", "Warszawa", "Kraków", "Psychologia", "Prawo"]
     
@@ -23,6 +97,8 @@ struct SearchView: View {
         
         var results: [SearchResult] = []
         let query = searchText.lowercased()
+        
+        print("DEBUG: Searching for '\(query)' in \(programs.count) programs and \(universities.count) universities")
         
         // Smart search - search across multiple fields
         // Universities
@@ -45,6 +121,8 @@ struct SearchView: View {
             universities.first { $0.id == program.universityId }?.name.lowercased().contains(query) ?? false ||
             universities.first { $0.id == program.universityId }?.city.lowercased().contains(query) ?? false
         }
+        
+        print("DEBUG: Found \(matchingPrograms.count) matching programs and \(matchingUniversities.count) matching universities")
         
         // Sort by relevance (exact matches first)
         let sortedUniversities = matchingUniversities.sorted { uni1, uni2 in
@@ -82,61 +160,64 @@ struct SearchView: View {
                     .foregroundColor(.secondary)
                 
                 TextField("Szukaj kierunków, uczelni, miast...", text: $searchText)
-                        .textFieldStyle(PlainTextFieldStyle())
-                        .autocapitalization(.none)
-                        .disableAutocorrection(true)
-                        .onSubmit {
-                            addToRecentSearches()
-                        }
-                    
-                    if !searchText.isEmpty {
-                        Button(action: {
-                            searchText = ""
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.secondary)
-                        }
+                    .textFieldStyle(PlainTextFieldStyle())
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
+                    .onSubmit {
+                        addToRecentSearches()
+                    }
+                
+                if !searchText.isEmpty {
+                    Button(action: {
+                        searchText = ""
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(Color(.systemGray6))
-                .cornerRadius(10)
-                .padding(.horizontal)
-                .padding(.top, 8)
-                .padding(.bottom, 4)
-                
-                // Results or suggestions
-                if searchText.isEmpty {
-                    SearchSuggestionsView(
-                        recentSearches: $recentSearches,
-                        popularSearches: popularSearches,
-                        onSelect: { searchText = $0 }
-                    )
-                } else if searchResults.isEmpty {
-                    NoResultsView(searchText: searchText)
-                } else {
-                    List {
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(Color(.systemGray6))
+            .cornerRadius(10)
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .padding(.bottom, 4)
+            
+            // Results or suggestions
+            if searchText.isEmpty {
+                SearchSuggestionsView(
+                    recentSearches: $recentSearches,
+                    popularSearches: popularSearches,
+                    onSelect: { searchText = $0 }
+                )
+            } else if searchResults.isEmpty {
+                NoResultsView(searchText: searchText)
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
                         if searchResults.count > 20 {
                             Text("Pokazuję \(min(searchResults.count, 50)) z \(searchResults.count) wyników")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                                .padding(.vertical, 2)
-                                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 16)
                         }
                         
                         ForEach(searchResults.prefix(50)) { result in
                             SearchResultRow(result: result)
-                                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                                .padding(.horizontal, 16)
+                            
+                            if result.id != searchResults.prefix(50).last?.id {
+                                Divider()
+                                    .padding(.leading, 16)
+                            }
                         }
                     }
-                    .listStyle(PlainListStyle())
-                    .listRowSeparator(.hidden)
                 }
             }
-        .navigationTitle("Szukaj")
-        .navigationBarTitleDisplayMode(.inline)
-        .background(Color.white)
+        }
+        .background(Color(.systemBackground))
         .onAppear {
             loadData()
         }
@@ -145,6 +226,8 @@ struct SearchView: View {
     private func loadData() {
         programs = mockData.mockPrograms
         universities = mockData.mockUniversities
+        
+        print("DEBUG: Loaded \(programs.count) programs and \(universities.count) universities")
         
         // Load recent searches from UserDefaults
         if let saved = UserDefaults.standard.array(forKey: "recentSearches") as? [String] {
@@ -277,7 +360,7 @@ struct SearchPlaceholderView: View {
         VStack(spacing: 20) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 60))
-                .foregroundColor(.gray.opacity(0.5))
+                .foregroundColor(.secondary.opacity(0.5))
             
             Text("Wyszukaj kierunki i uczelnie")
                 .font(.title2)
@@ -299,7 +382,7 @@ struct SearchPlaceholderView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.white)
+        .background(Color(.systemBackground))
     }
 }
 
@@ -312,7 +395,7 @@ struct NoResultsView: View {
             
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 48))
-                .foregroundColor(.gray.opacity(0.4))
+                .foregroundColor(.secondary.opacity(0.4))
             
             VStack(spacing: 8) {
                 Text("Brak wyników")
@@ -334,7 +417,7 @@ struct NoResultsView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.white)
+        .background(Color(.systemBackground))
     }
 }
 

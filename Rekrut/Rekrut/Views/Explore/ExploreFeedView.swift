@@ -218,7 +218,7 @@ struct ExploreFeedView: View {
     
     @ViewBuilder
     var citiesSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 8) {
             ExploreSectionHeader(
                 title: "Miasta",
                 icon: "mappin.circle.fill",
@@ -247,35 +247,29 @@ struct ExploreFeedView: View {
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                FilterSectionView(
-                    selectedMode: $selectedMode,
-                    selectedCity: $selectedCity,
-                    selectedDegree: $selectedDegree,
-                    cities: cities
-                )
-                
-                trendingSection
-                
-                forYouSection
-                
-                topUniversitiesSection
-                
-                recommendedSection
-                
-                citiesSection
-                
-                categoriesSection
-                
-                .padding(.bottom, 24)
-            }
-            .background(Color.white)
+        VStack(spacing: 20) {
+            FilterSectionView(
+                selectedMode: $selectedMode,
+                selectedCity: $selectedCity,
+                selectedDegree: $selectedDegree,
+                cities: cities
+            )
+            
+            forYouSection
+            
+            topUniversitiesSection
+            
+            trendingSection
+            
+            recommendedSection
+            
+            citiesSection
+            
+            categoriesSection
+            
+            .padding(.bottom, 24)
         }
-        .background(Color.white)
-        .navigationTitle("Eksploruj")
-        .navigationBarTitleDisplayMode(.inline)
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .onAppear {
             loadData()
         }
@@ -632,7 +626,7 @@ struct FilterDropdownLabel: View {
         .padding(.vertical, 8)
         .background(isActive ? Color.blue.opacity(0.1) : Color(.systemGray6))
         .foregroundColor(isActive ? .blue : .primary)
-        .cornerRadius(20)
+        .cornerRadius(12)
     }
 }
 

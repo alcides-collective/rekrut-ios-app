@@ -19,10 +19,11 @@ struct CityDetailView: View {
     private let categories = ["Przegląd", "Uczelnie", "Życie studenckie", "Koszty", "Transport"]
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                // Hero Section with Image
-                ZStack(alignment: .bottomLeading) {
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Hero Section with Image
+                    ZStack(alignment: .bottomLeading) {
                     // City Image
                     AsyncImage(url: URL(string: city.imageURL ?? "")) { phase in
                         switch phase {
@@ -67,7 +68,7 @@ struct CityDetailView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(city.name)
                             .font(.largeTitle)
-                            .fontWeight(.bold)
+                            .bold()
                             .foregroundColor(.white)
                         
                         HStack(spacing: 16) {
@@ -77,7 +78,8 @@ struct CityDetailView: View {
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.9))
                     }
-                    .padding(24)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 24)
                 }
                 
                 // Category Picker
@@ -124,14 +126,9 @@ struct CityDetailView: View {
                 }
             }
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Zamknij") {
-                    presentationMode.wrappedValue.dismiss()
-                }
-            }
         }
+        .ignoresSafeArea(edges: .top)
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             loadData()
             setupMapRegion()
@@ -184,7 +181,7 @@ struct CityDetailView: View {
                     .padding(.horizontal)
                 
                 Map(coordinateRegion: $mapRegion, annotationItems: universities) { university in
-                    MapPin(coordinate: getCityCoordinate(), tint: city.color)
+                    MapMarker(coordinate: getCityCoordinate(), tint: city.color)
                 }
                 .frame(height: 200)
                 .cornerRadius(12)
@@ -737,7 +734,7 @@ struct StatCard: View {
             
             Text(value)
                 .font(.title2)
-                .fontWeight(.bold)
+                .bold()
             
             Text(title)
                 .font(.caption)

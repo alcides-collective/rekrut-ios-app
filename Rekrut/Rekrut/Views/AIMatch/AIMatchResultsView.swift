@@ -80,7 +80,7 @@ struct AIMatchResultsView: View {
                     }
                     .padding(.bottom, 40)
                 }
-                .background(Color(.systemGroupedBackground))
+                .background(Color(.systemBackground))
             }
         }
         .toolbar {
@@ -358,7 +358,7 @@ struct AIMatchProgramCard: View {
                                     
                                     Text("\(rank)")
                                         .font(.system(.subheadline, design: .rounded))
-                                        .fontWeight(.bold)
+                                        .bold()
                                         .foregroundColor(.white)
                                 } else {
                                     Circle()
@@ -963,7 +963,7 @@ struct ProgramGridCard: View {
                 HStack {
                     Text(program.name)
                         .font(.caption)
-                        .fontWeight(.bold)
+                        .bold()
                         .foregroundColor(.white)
                         .lineLimit(1)
                     
@@ -1102,7 +1102,7 @@ struct GridInsightCardWithBadge: View {
                         
                         Text("\(badgeNumber)")
                             .font(.caption2)
-                            .fontWeight(.bold)
+                            .bold()
                             .foregroundColor(color)
                     }
                 }

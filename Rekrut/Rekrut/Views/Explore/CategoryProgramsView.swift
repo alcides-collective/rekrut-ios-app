@@ -60,7 +60,7 @@ struct CategoryProgramsView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(categoryName)
                             .font(.title2)
-                            .fontWeight(.bold)
+                            .bold()
                         
                         Text("\(programs.count) kierunków")
                             .font(.subheadline)
@@ -189,7 +189,18 @@ struct CategoryProgramsView: View {
                     description: "Profesjonalne przygotowanie sportowe",
                     requirements: AdmissionRequirements(
                         description: "Rekrutacja na podstawie wyników matury z WF-u oraz testów sprawnościowych",
-                        formula: "W = 0.5 * WF + 0.3 * BIO + 0.2 * J.POL",
+                        formula: FormulaFactory.createSimpleFormula(
+                            universityId: "awf",
+                            programId: "awf-sport-prof",
+                            components: [
+                                (subject: "WF", level: "P", weight: 0.5),
+                                (subject: "BIO", level: "P", weight: 0.3),
+                                (subject: "POL", level: "P", weight: 0.2)
+                            ],
+                            mandatorySubjects: [],
+                            lastYearThreshold: nil
+                        ),
+                        formulaId: "awf-sport-prof-formula",
                         minimumPoints: 70,
                         additionalExams: ["Test sprawności fizycznej"],
                         documents: ["Świadectwo maturalne", "Zaświadczenie lekarskie"],
@@ -214,7 +225,18 @@ struct CategoryProgramsView: View {
                     description: "Zarządzanie w branży turystycznej",
                     requirements: AdmissionRequirements(
                         description: "Rekrutacja na podstawie wyników matury z WF-u oraz testów sprawnościowych",
-                        formula: "W = 0.5 * WF + 0.3 * BIO + 0.2 * J.POL",
+                        formula: FormulaFactory.createSimpleFormula(
+                            universityId: "awf",
+                            programId: "awf-sport-prof",
+                            components: [
+                                (subject: "WF", level: "P", weight: 0.5),
+                                (subject: "BIO", level: "P", weight: 0.3),
+                                (subject: "POL", level: "P", weight: 0.2)
+                            ],
+                            mandatorySubjects: [],
+                            lastYearThreshold: nil
+                        ),
+                        formulaId: "awf-sport-prof-formula",
                         minimumPoints: 70,
                         additionalExams: ["Test sprawności fizycznej"],
                         documents: ["Świadectwo maturalne", "Zaświadczenie lekarskie"],
@@ -242,7 +264,14 @@ struct CategoryProgramsView: View {
                     description: "Projektowanie graficzne i ilustracja",
                     requirements: AdmissionRequirements(
                         description: "Rekrutacja na podstawie portfolio oraz egzaminu wstępnego z rysunku i kompozycji",
-                        formula: "",
+                        formula: FormulaFactory.createSimpleFormula(
+                            universityId: "asp",
+                            programId: "asp-art",
+                            components: [],
+                            mandatorySubjects: [],
+                            lastYearThreshold: nil
+                        ),
+                        formulaId: "asp-art-formula",
                         minimumPoints: nil,
                         additionalExams: ["Egzamin z rysunku", "Egzamin z kompozycji", "Przegląd portfolio"],
                         documents: ["Świadectwo maturalne", "Portfolio prac", "List motywacyjny"],
@@ -382,7 +411,7 @@ struct ProgramRowCard: View {
                 .overlay(
                     Text(MockDataService.shared.mockUniversities.first { $0.id == program.universityId }?.shortName ?? "?")
                         .font(.caption)
-                        .fontWeight(.bold)
+                        .bold()
                         .foregroundColor(categoryColor)
                 )
             
@@ -411,7 +440,7 @@ struct ProgramRowCard: View {
                                 // User hasn't entered matura scores
                                 Text("Wprowadź maturę")
                                     .font(.caption)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.secondary)
                             } else {
                                 Text("\(Int(threshold)) pkt")
                                     .font(.caption)
@@ -421,7 +450,7 @@ struct ProgramRowCard: View {
                     } else {
                         Label("Brak danych", systemImage: "questionmark.circle")
                             .font(.caption)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                     }
                     
                     if let slots = program.availableSlots {
@@ -449,7 +478,7 @@ struct ProgramRowCard: View {
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.05), radius: 5)
     }

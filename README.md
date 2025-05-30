@@ -68,7 +68,7 @@ open Rekrut/Rekrut.xcodeproj
 - **Architecture**: MVVM
 - **Backend**: Firebase (Auth, Firestore, Storage)
 - **Authentication**: Sign in with Apple
-- **Minimum iOS**: 15.0
+- **Minimum iOS**: 16.0
 - **Dependencies**: Firebase SDK
 
 ## 📂 Project Structure

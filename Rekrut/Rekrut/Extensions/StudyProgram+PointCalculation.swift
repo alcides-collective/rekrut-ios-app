@@ -12,9 +12,21 @@ extension StudyProgram {
     /// Calculate user's admission points based on the program's formula and user's matura scores
     func calculateUserPoints(maturaScores: MaturaScores) -> Double {
         // Use the program's specific formula to calculate points
-        let formula = requirements.formula
-        if !formula.isEmpty {
-            return FormulaCalculator.calculatePoints(formula: formula, maturaScores: maturaScores)
+        if let formula = requirements.formula {
+            // Create ExtendedScores with just matura scores for FormulaCalculatorV2
+            let extendedScores = FormulaCalculator.ExtendedScores(
+                maturaScores: maturaScores,
+                practicalExams: nil,
+                interviewScore: nil,
+                portfolioScore: nil,
+                previousDegreeGPA: nil,
+                olympiadResults: nil,
+                certificates: nil,
+                isBilingual: false,
+                examSystem: .polish
+            )
+            let result = FormulaCalculator.calculate(formula: formula, scores: extendedScores)
+            return result.totalScore
         }
         
         // Fallback to simple average if no formula specified

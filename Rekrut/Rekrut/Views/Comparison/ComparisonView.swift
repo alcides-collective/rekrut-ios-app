@@ -40,7 +40,7 @@ struct ComparisonView: View {
                 
                 Spacer()
             }
-            .background(Color.white)
+            .background(Color(.systemBackground))
             .navigationTitle("Porównaj")
             .navigationBarTitleDisplayMode(.inline)
         }

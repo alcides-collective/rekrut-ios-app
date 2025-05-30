@@ -9,56 +9,41 @@ import SwiftUI
 
 struct MainTabView: View {
     @State private var selectedTab = 0
-    @State private var showingProfile = false
-    @StateObject private var firebaseService = FirebaseService.shared
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            NavigationViewWithProfile(showingProfile: $showingProfile) {
-                ExploreView()
-            }
+            ExploreView()
             .tabItem {
-                Label("Eksploruj", systemImage: "square.grid.2x2")
+                Label("Odkrywaj", systemImage: "safari")
             }
             .tag(0)
             
-            NavigationViewWithProfile(showingProfile: $showingProfile) {
-                ErasmusView()
-            }
+            ErasmusView()
             .tabItem {
-                Label("Erasmus+", systemImage: "airplane")
+                Label("Erasmus+", systemImage: "globe.europe.africa")
             }
             .tag(1)
             
-            NavigationViewWithProfile(showingProfile: $showingProfile) {
-                AIMatchView()
-            }
+            AIMatchView()
             .tabItem {
                 Label("AI Match", systemImage: "sparkles")
             }
             .tag(2)
             
-            NavigationViewWithProfile(showingProfile: $showingProfile) {
-                InteractiveMaturaView()
-            }
+            InteractiveMaturaView()
             .tabItem {
-                Label("Matury", systemImage: "graduationcap")
+                Label("Matury", systemImage: "sum")
             }
             .tag(3)
             
-            NavigationViewWithProfile(showingProfile: $showingProfile) {
-                SearchView()
-            }
+            SearchView()
             .tabItem {
                 Label("Szukaj", systemImage: "magnifyingglass")
             }
             .tag(4)
         }
         .accentColor(.blue)
-        .background(Color.white)
-        .sheet(isPresented: $showingProfile) {
-            ProfileView()
-        }
+        .background(Color(.systemBackground))
     }
 }
 
@@ -83,7 +68,7 @@ struct NavigationViewWithProfile<Content: View>: View {
                 }
         }
         .navigationViewStyle(StackNavigationViewStyle())
-        .background(Color.white)
+        .background(Color(.systemBackground))
     }
 }
 

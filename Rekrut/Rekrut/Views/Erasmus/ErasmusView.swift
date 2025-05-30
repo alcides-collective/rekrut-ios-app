@@ -8,8 +8,82 @@
 import SwiftUI
 
 struct ErasmusView: View {
+    @State private var showingProfile = false
+    @StateObject private var firebaseService = FirebaseService.shared
+    @State private var showNavBar = false
+    
+    var body: some View {
+        NavigationView {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Custom inline header
+                        HStack {
+                            Text("Erasmus+")
+                                .font(.title)
+                                .fontWeight(.bold)
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                showingProfile = true
+                            }) {
+                                Image(systemName: firebaseService.isAuthenticated ? "person.crop.circle.fill" : "person.crop.circle")
+                                    .font(.title2)
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 10)
+                        .background(
+                            GeometryReader { geometry in
+                                Color.clear
+                                    .onChange(of: geometry.frame(in: .global).minY) { value in
+                                        withAnimation(.easeInOut(duration: 0.1)) {
+                                            showNavBar = value < 50
+                                        }
+                                    }
+                            }
+                        )
+                        
+                        ErasmusContentView()
+                    }
+                }
+            }
+            .navigationBarHidden(true)
+            .overlay(alignment: .top) {
+                // Navigation bar that appears on scroll
+                if showNavBar {
+                    VStack(spacing: 0) {
+                        Color.clear
+                            .frame(height: 50)
+                        
+                        HStack {
+                            Text("Erasmus+")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .frame(height: 56)
+                        .background(.regularMaterial)
+                        .overlay(alignment: .bottom) {
+                            Divider()
+                        }
+                    }
+                    .ignoresSafeArea()
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+        }
+        .navigationViewStyle(StackNavigationViewStyle())
+        .sheet(isPresented: $showingProfile) {
+            ProfileView()
+        }
+    }
+}
+
+struct ErasmusContentView: View {
     @State private var popularUniversities: [ErasmusUniversity] = []
-    @State private var popularCities: [ErasmusCity] = []
+    @State private var popularCities: [CityInfo] = []
     @State private var countries: [String] = []
     @State private var selectedCountry: String?
     @State private var selectedCity: String?
@@ -18,15 +92,14 @@ struct ErasmusView: View {
     let fields = ["Wszystkie dziedziny", "Informatyka", "Ekonomia", "Medycyna", "Prawo", "Inżynieria", "Psychologia"]
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Filters
-                ErasmusFilterSection(
-                    selectedCountry: $selectedCountry,
-                    selectedCity: $selectedCity,
-                    selectedField: $selectedField,
-                    fields: fields
-                )
+        VStack(spacing: 20) {
+            // Filters
+            ErasmusFilterSection(
+                selectedCountry: $selectedCountry,
+                selectedCity: $selectedCity,
+                selectedField: $selectedField,
+                fields: fields
+            )
                 
                 // Popular Universities Section
                 VStack(alignment: .leading, spacing: 16) {
@@ -84,13 +157,9 @@ struct ErasmusView: View {
                     }
                     .padding(.horizontal)
                 }
-                
                 .padding(.bottom, 24)
             }
-        }
-        .navigationTitle("Erasmus+")
-        .navigationBarTitleDisplayMode(.inline)
-        .background(Color.white)
+        .background(Color(.systemBackground))
     }
 }
 
@@ -226,10 +295,9 @@ struct UniversityCard: View {
     }
     
     var body: some View {
-        NavigationLink(destination: Text("Szczegóły uczelni")) {
-            ZStack(alignment: .bottomLeading) {
-                // Background - either image or gradient
-                if let imageURL = university.imageURL,
+        ZStack(alignment: .bottomLeading) {
+            // Background - either image or gradient
+            if let imageURL = university.imageURL,
                    !imageLoadFailed,
                    let url = URL(string: imageURL) {
                     AsyncImage(url: url) { phase in
@@ -256,9 +324,9 @@ struct UniversityCard: View {
                                 .onAppear { imageLoadFailed = true }
                         case .empty:
                             ZStack {
-                                Color.gray.opacity(0.1)
+                                Color.secondary.opacity(0.1)
                                 ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .gray))
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .secondary))
                             }
                         @unknown default:
                             backgroundGradient
@@ -308,18 +376,16 @@ struct UniversityCard: View {
                     .foregroundColor(.white.opacity(0.9))
                 }
                 .padding()
-            }
-            .frame(width: 280, height: 160)
-            .cornerRadius(16)
-            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         }
-        .buttonStyle(PlainButtonStyle())
+        .frame(width: 280, height: 160)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
     }
 }
 
 // MARK: - City Card
 struct CityCard: View {
-    let city: ErasmusCity
+    let city: CityInfo
     @State private var imageLoadFailed = false
     
     private var backgroundGradient: LinearGradient {
@@ -331,10 +397,9 @@ struct CityCard: View {
     }
     
     var body: some View {
-        NavigationLink(destination: Text("Uczelnie w \(city.name)")) {
-            ZStack(alignment: .bottomLeading) {
-                // Background - either image or gradient
-                if let imageURL = city.imageURL,
+        ZStack(alignment: .bottomLeading) {
+            // Background - either image or gradient
+            if let imageURL = city.imageURL,
                    !imageLoadFailed,
                    let url = URL(string: imageURL) {
                     AsyncImage(url: url) { phase in
@@ -361,9 +426,9 @@ struct CityCard: View {
                                 .onAppear { imageLoadFailed = true }
                         case .empty:
                             ZStack {
-                                Color.gray.opacity(0.1)
+                                Color.secondary.opacity(0.1)
                                 ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .gray))
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .secondary))
                             }
                         @unknown default:
                             backgroundGradient
@@ -381,25 +446,40 @@ struct CityCard: View {
                         .font(.headline)
                         .foregroundColor(.white)
                     
-                    Text(city.country)
+                    Text(getCityCountry(city.name))
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.9))
                     
                     HStack(spacing: 4) {
                         Image(systemName: "building.2")
                             .font(.caption)
-                        Text("\(city.universitiesCount) uczelni")
+                        Text("\(city.universityCount) uczelni")
                             .font(.caption)
                     }
                     .foregroundColor(.white.opacity(0.9))
-                }
-                .padding()
             }
-            .frame(width: 200, height: 140)
-            .cornerRadius(16)
-            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+            .padding()
         }
-        .buttonStyle(PlainButtonStyle())
+        .frame(width: 200, height: 140)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+    }
+    
+    private func getCityCountry(_ cityName: String) -> String {
+        // Map Erasmus cities to their countries
+        let cityCountryMap = [
+            "Barcelona": "Hiszpania",
+            "Amsterdam": "Holandia",
+            "Praga": "Czechy",
+            "Lizbona": "Portugalia",
+            "Wiedeń": "Austria",
+            "Berlin": "Niemcy",
+            "Paryż": "Francja",
+            "Rzym": "Włochy",
+            "Madryt": "Hiszpania",
+            "Monachium": "Niemcy"
+        ]
+        return cityCountryMap[cityName] ?? "Europa"
     }
 }
 
@@ -466,14 +546,7 @@ struct ErasmusUniversity: Identifiable {
     let imageURL: String?
 }
 
-struct ErasmusCity: Identifiable {
-    let id = UUID()
-    let name: String
-    let country: String
-    let universitiesCount: Int
-    let color: Color
-    let imageURL: String?
-}
+// ErasmusCity is now deprecated - use CityInfo from ExploreFeedComponents instead
 
 // MARK: - Mock Data
 let mockErasmusUniversities = [
@@ -483,12 +556,12 @@ let mockErasmusUniversities = [
     ErasmusUniversity(name: "Sapienza University", city: "Rzym", country: "Włochy", availableSpots: 18, partnershipsCount: 10, imageURL: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?w=800")
 ]
 
-let mockErasmusCities = [
-    ErasmusCity(name: "Barcelona", country: "Hiszpania", universitiesCount: 8, color: .orange, imageURL: "https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800"),
-    ErasmusCity(name: "Amsterdam", country: "Holandia", universitiesCount: 5, color: .blue, imageURL: "https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=800"),
-    ErasmusCity(name: "Praga", country: "Czechy", universitiesCount: 6, color: .purple, imageURL: "https://images.unsplash.com/photo-1541849546-216549ae216d?w=800"),
-    ErasmusCity(name: "Lizbona", country: "Portugalia", universitiesCount: 4, color: .cyan, imageURL: "https://images.unsplash.com/photo-1585208798174-6cedd86e019a?w=800"),
-    ErasmusCity(name: "Wiedeń", country: "Austria", universitiesCount: 7, color: .red, imageURL: "https://images.unsplash.com/photo-1516550893923-42d28e5677af?w=800")
+let mockErasmusCities: [CityInfo] = [
+    CityInfo(name: "Barcelona", universityCount: 8, imageURL: "https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800", color: .orange),
+    CityInfo(name: "Amsterdam", universityCount: 5, imageURL: "https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=800", color: .blue),
+    CityInfo(name: "Praga", universityCount: 6, imageURL: "https://images.unsplash.com/photo-1541849546-216549ae216d?w=800", color: .purple),
+    CityInfo(name: "Lizbona", universityCount: 4, imageURL: "https://images.unsplash.com/photo-1585208798174-6cedd86e019a?w=800", color: .cyan),
+    CityInfo(name: "Wiedeń", universityCount: 7, imageURL: "https://images.unsplash.com/photo-1516550893923-42d28e5677af?w=800", color: .red)
 ]
 
 let mockErasmusCountries = [

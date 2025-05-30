@@ -38,6 +38,8 @@ struct ProgramDetailView: View {
     let university: University
     @StateObject private var firebaseService = FirebaseService.shared
     @State private var isSaved = false
+    @State private var showingLoginAlert = false
+    @State private var showingProfile = false
     
     init(program: StudyProgram, university: University) {
         self.program = program
@@ -109,6 +111,17 @@ struct ProgramDetailView: View {
         .onAppear {
             checkIfSaved()
         }
+        .alert("Zaloguj się", isPresented: $showingLoginAlert) {
+            Button("Anuluj", role: .cancel) { }
+            Button("Zaloguj") {
+                showingProfile = true
+            }
+        } message: {
+            Text("Musisz się zalogować, aby zapisywać programy studiów.")
+        }
+        .sheet(isPresented: $showingProfile) {
+            ProfileView()
+        }
     }
     
     private func checkIfSaved() {
@@ -118,6 +131,12 @@ struct ProgramDetailView: View {
     }
     
     private func toggleSave() {
+        // Check if user is authenticated
+        guard firebaseService.isAuthenticated else {
+            showingLoginAlert = true
+            return
+        }
+        
         Task {
             do {
                 if isSaved {
@@ -187,9 +206,9 @@ struct ProgramHeroView: View {
                                 .onAppear { imageLoadFailed = true }
                         case .empty:
                             ZStack {
-                                Color.gray.opacity(0.1)
+                                Color.secondary.opacity(0.1)
                                 ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .gray))
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .secondary))
                             }
                             .frame(width: geometry.size.width, height: geometry.size.height)
                         @unknown default:
@@ -209,7 +228,7 @@ struct ProgramHeroView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(program.name)
                             .font(.largeTitle)
-                            .fontWeight(.bold)
+                            .bold()
                             .foregroundColor(.white)
                             .lineLimit(2)
                         
@@ -246,15 +265,15 @@ struct ProgramHeroView: View {
                 LinearGradient(
                     gradient: Gradient(stops: [
                         .init(color: Color.clear, location: 0),
-                        .init(color: Color.white.opacity(0.05), location: 0.1),
-                        .init(color: Color.white.opacity(0.1), location: 0.2),
-                        .init(color: Color.white.opacity(0.2), location: 0.3),
-                        .init(color: Color.white.opacity(0.35), location: 0.4),
-                        .init(color: Color.white.opacity(0.5), location: 0.5),
-                        .init(color: Color.white.opacity(0.65), location: 0.6),
-                        .init(color: Color.white.opacity(0.8), location: 0.7),
-                        .init(color: Color.white.opacity(0.9), location: 0.85),
-                        .init(color: Color.white, location: 1.0)
+                        .init(color: Color(.systemBackground).opacity(0.05), location: 0.1),
+                        .init(color: Color(.systemBackground).opacity(0.1), location: 0.2),
+                        .init(color: Color(.systemBackground).opacity(0.2), location: 0.3),
+                        .init(color: Color(.systemBackground).opacity(0.35), location: 0.4),
+                        .init(color: Color(.systemBackground).opacity(0.5), location: 0.5),
+                        .init(color: Color(.systemBackground).opacity(0.65), location: 0.6),
+                        .init(color: Color(.systemBackground).opacity(0.8), location: 0.7),
+                        .init(color: Color(.systemBackground).opacity(0.9), location: 0.85),
+                        .init(color: Color(.systemBackground), location: 1.0)
                     ]),
                     startPoint: .top,
                     endPoint: .bottom
@@ -305,7 +324,7 @@ struct ProgramEssentialsView: View {
         }
         .background(Color(.secondarySystemBackground))
         .cornerRadius(12)
-        .padding(.horizontal, 16)
+        .padding(.horizontal)
     }
 }
 
@@ -394,7 +413,7 @@ struct AdmissionProgressView: View {
                 return .red
             }
         }
-        return .gray
+        return .secondary
     }
     
     var body: some View {
@@ -417,11 +436,11 @@ struct AdmissionProgressView: View {
                         } else {
                             HStack(spacing: 6) {
                                 Circle()
-                                    .fill(Color.gray)
+                                    .fill(Color.secondary)
                                     .frame(width: 10, height: 10)
                                 Text("Wprowadź maturę")
                                     .font(.subheadline)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.secondary)
                             }
                         }
                     }
@@ -439,7 +458,7 @@ struct AdmissionProgressView: View {
                                 .font(.subheadline)
                         }
                         .foregroundColor(.white)
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, 20)
                         .padding(.vertical, 10)
                         .background(Color.blue)
                         .cornerRadius(20)
@@ -500,7 +519,7 @@ struct AdmissionProgressView: View {
         .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-        .padding(.horizontal, 16)
+        .padding(.horizontal)
     }
     
     private var progressText: String {
@@ -526,7 +545,7 @@ struct ProgramDescriptionView: View {
                 .lineSpacing(4)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 24)
+                .padding(.horizontal)
         }
     }
 }
@@ -535,73 +554,64 @@ struct ProgramAdmissionView: View {
     let program: StudyProgram
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             Text("Rekrutacja")
                 .font(.title2)
                 .fontWeight(.semibold)
-                .padding(.horizontal, 24)
             
-            VStack(alignment: .leading, spacing: 20) {
-                // Description if available
-                if let description = program.requirements.description {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Zasady rekrutacji")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        
-                        Text(description)
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .lineSpacing(3)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-                
-                // Formula - simplified
+            // Description if available
+            if let description = program.requirements.description {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Wzór punktacji")
+                    Text("Zasady rekrutacji")
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
-                    Text(program.requirements.formula)
-                        .font(.system(.footnote, design: .monospaced))
-                        .foregroundColor(.primary)
-                        .padding(12)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(.secondarySystemBackground))
-                        .cornerRadius(8)
-                }
-                
-                // Additional exams - only if present
-                if !program.requirements.additionalExams.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Dodatkowe egzaminy")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        
-                        Text(program.requirements.additionalExams.joined(separator: ", "))
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                // Deadline - simple format
-                if let deadline = program.requirements.deadlineDate {
-                    HStack {
-                        Text("Termin:")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        
-                        Text(deadline, style: .date)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
-                    }
+                    Text(description)
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        .lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            .padding(.horizontal, 24)
+            
+            // Formula - with LaTeX-like display
+            if let formula = program.requirements.formula {
+                ProgramFormulaCard(formula: formula.metadata.description)
+                
+                // Formula Legend
+                FormulaLegendView()
+                    .padding(.top, 8)
+            }
+            
+            // Additional exams - only if present
+            if !program.requirements.additionalExams.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Dodatkowe egzaminy")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    Text(program.requirements.additionalExams.joined(separator: ", "))
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            // Deadline - simple format
+            if let deadline = program.requirements.deadlineDate {
+                HStack {
+                    Text("Termin:")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    Text(deadline, style: .date)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                }
+            }
         }
+        .padding(.horizontal)
     }
 }
 
@@ -614,7 +624,7 @@ struct ProgramTagsView: View {
             Text("Tematyka")
                 .font(.title2)
                 .fontWeight(.semibold)
-                .padding(.horizontal, 24)
+                .padding(.horizontal)
             
             // Simple wrapping for iOS 15 - split into rows
             VStack(alignment: .leading, spacing: 8) {
@@ -635,7 +645,7 @@ struct ProgramTagsView: View {
                     }
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal)
         }
     }
 }
@@ -671,7 +681,7 @@ struct NoThresholdInfoView: View {
                                 .font(.subheadline)
                         }
                         .foregroundColor(.white)
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, 20)
                         .padding(.vertical, 10)
                         .background(Color.blue)
                         .cornerRadius(20)
@@ -792,7 +802,7 @@ struct NoThresholdInfoView: View {
                         .stroke(colorForAdmissionType.opacity(0.3), lineWidth: 1)
                 )
         )
-        .padding(.horizontal, 24)
+        .padding(.horizontal)
     }
     
     private var iconForAdmissionType: String {
@@ -823,7 +833,7 @@ struct NoThresholdInfoView: View {
         case .interview:
             return .green
         case .unknown:
-            return .gray
+            return .secondary
         case .maturaPoints:
             return .orange
         }
@@ -860,6 +870,437 @@ struct NoThresholdInfoView: View {
             return "Szczegółowe kryteria rekrutacji nie zostały jeszcze opublikowane. Prosimy o regularne sprawdzanie strony uczelni."
         case .maturaPoints:
             return "Próg punktowy dla tego kierunku nie jest jeszcze dostępny. Sprawdź informacje na stronie uczelni."
+        }
+    }
+}
+
+// MARK: - Formula Legend
+struct FormulaLegendView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Legenda")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+            
+            VStack(alignment: .leading, spacing: 8) {
+                LegendRow(
+                    symbol: "R",
+                    description: "Poziom rozszerzony",
+                    color: .blue
+                )
+                
+                LegendRow(
+                    symbol: "P",
+                    description: "Poziom podstawowy",
+                    color: .green
+                )
+                
+                LegendRow(
+                    symbol: "×",
+                    description: "Współczynnik wagowy",
+                    color: .orange
+                )
+                
+                LegendRow(
+                    symbol: "max()",
+                    description: "Najwyższy wynik z podanych przedmiotów",
+                    color: .purple
+                )
+                
+                LegendRow(
+                    symbol: "W",
+                    description: "Wynik końcowy (punkty rekrutacyjne)",
+                    color: .red
+                )
+            }
+            
+            Divider()
+                .padding(.vertical, 8)
+            
+            Text("Skróty przedmiotów")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+            
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 16) {
+                    SubjectAbbreviationRow(abbr: "mat", full: "matematyka")
+                    SubjectAbbreviationRow(abbr: "pol", full: "język polski")
+                    SubjectAbbreviationRow(abbr: "ang", full: "język angielski")
+                }
+                HStack(spacing: 16) {
+                    SubjectAbbreviationRow(abbr: "inf", full: "informatyka")
+                    SubjectAbbreviationRow(abbr: "fiz", full: "fizyka")
+                    SubjectAbbreviationRow(abbr: "chem", full: "chemia")
+                }
+                HStack(spacing: 16) {
+                    SubjectAbbreviationRow(abbr: "bio", full: "biologia")
+                    SubjectAbbreviationRow(abbr: "hist", full: "historia")
+                    SubjectAbbreviationRow(abbr: "geo", full: "geografia")
+                }
+                HStack(spacing: 16) {
+                    SubjectAbbreviationRow(abbr: "WOS", full: "wiedza o społ.")
+                    SubjectAbbreviationRow(abbr: "j.ob", full: "język obcy")
+                    Spacer()
+                }
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.tertiarySystemBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color(.quaternarySystemFill), lineWidth: 1)
+                )
+        )
+    }
+}
+
+struct LegendRow: View {
+    let symbol: String
+    let description: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Symbol badge
+            Text(symbol)
+                .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                .foregroundColor(color)
+                .frame(width: 40, alignment: .center)
+                .padding(.vertical, 4)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(color.opacity(0.1))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(color.opacity(0.3), lineWidth: 1)
+                        )
+                )
+            
+            // Description
+            Text(description)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+struct SubjectAbbreviationRow: View {
+    let abbr: String
+    let full: String
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(abbr)
+                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                .foregroundColor(.primary)
+                .frame(minWidth: 35, alignment: .trailing)
+            
+            Text("=")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+            
+            Text(full)
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+        }
+        .frame(minWidth: 100, alignment: .leading)
+    }
+}
+
+// MARK: - Program Formula Card
+struct ProgramFormulaCard: View {
+    let formula: String
+    let title: String = "Wzór rekrutacyjny"
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "function")
+                    .font(.caption)
+                    .foregroundColor(.blue)
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            VStack(alignment: .center, spacing: 8) {
+                ProgramFormulaView(formula: formula)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+            .padding(.vertical, 4)
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+}
+
+// MARK: - Program Formula View
+struct ProgramFormulaView: View {
+    let formula: String
+    @State private var parsedFormula: [FormulaElement] = []
+    
+    var body: some View {
+        VStack(alignment: .center, spacing: 4) {
+            ForEach(Array(splitIntoLines().enumerated()), id: \.offset) { index, line in
+                HStack(spacing: 2) {
+                    ForEach(line.indices, id: \.self) { elementIndex in
+                        line[elementIndex].view
+                    }
+                }
+            }
+        }
+        .onAppear {
+            parsedFormula = parseFormula(formula)
+        }
+    }
+    
+    private func splitIntoLines() -> [[FormulaElement]] {
+        var lines: [[FormulaElement]] = []
+        var currentLine: [FormulaElement] = []
+        var elementCount = 0
+        
+        for element in parsedFormula {
+            currentLine.append(element)
+            
+            switch element {
+            case .coefficient, .subject, .maxFunction:
+                elementCount += 1
+            case .mathOperator:
+                break
+            }
+            
+            if case .mathOperator(let op) = element, op == "+", elementCount >= 3 {
+                lines.append(currentLine)
+                currentLine = []
+                elementCount = 0
+            }
+        }
+        
+        if !currentLine.isEmpty {
+            lines.append(currentLine)
+        }
+        
+        return lines.isEmpty ? [parsedFormula] : lines
+    }
+    
+    private func parseFormula(_ formula: String) -> [FormulaElement] {
+        var components: [FormulaElement] = []
+        let cleanFormula = formula.replacingOccurrences(of: "W = ", with: "")
+                                .replacingOccurrences(of: "W=", with: "")
+        
+        let pattern = "([+\\-×*/])"
+        let regex = try? NSRegularExpression(pattern: pattern, options: [])
+        let nsString = cleanFormula as NSString
+        let matches = regex?.matches(in: cleanFormula, options: [], range: NSRange(location: 0, length: nsString.length)) ?? []
+        
+        var lastEnd = 0
+        
+        for match in matches {
+            let range = match.range
+            
+            if range.location > lastEnd {
+                let beforeRange = NSRange(location: lastEnd, length: range.location - lastEnd)
+                let beforeText = nsString.substring(with: beforeRange).trimmingCharacters(in: .whitespaces)
+                if !beforeText.isEmpty {
+                    components.append(contentsOf: parseComponent(beforeText))
+                }
+            }
+            
+            let operatorText = nsString.substring(with: range)
+            components.append(.mathOperator(operatorText))
+            
+            lastEnd = range.location + range.length
+        }
+        
+        if lastEnd < nsString.length {
+            let remainingText = nsString.substring(from: lastEnd).trimmingCharacters(in: .whitespaces)
+            if !remainingText.isEmpty {
+                components.append(contentsOf: parseComponent(remainingText))
+            }
+        }
+        
+        if components.isEmpty {
+            components = parseComponent(cleanFormula)
+        }
+        
+        return components
+    }
+    
+    private func parseComponent(_ text: String) -> [FormulaElement] {
+        var components: [FormulaElement] = []
+        
+        if text.contains("×") || text.contains("*") {
+            let parts = text.split(separator: text.contains("×") ? "×" : "*").map { $0.trimmingCharacters(in: .whitespaces) }
+            if parts.count == 2 {
+                if let coefficient = Double(parts[0]) {
+                    components.append(.coefficient(coefficient))
+                    components.append(.mathOperator("×"))
+                }
+                components.append(.subject(formatSubject(parts[1])))
+                return components
+            }
+        }
+        
+        if text.hasPrefix("max(") {
+            // Check if there's a level indicator after the closing parenthesis
+            var level = ""
+            var maxContent = text
+            
+            if text.hasSuffix(") (R)") {
+                level = "R"
+                maxContent = String(text.dropLast(4)) // Remove " (R)"
+            } else if text.hasSuffix(")(R)") {
+                level = "R"
+                maxContent = String(text.dropLast(3)) // Remove "(R)"
+            } else if text.hasSuffix(") (P)") {
+                level = "P"
+                maxContent = String(text.dropLast(4)) // Remove " (P)"
+            } else if text.hasSuffix(")(P)") {
+                level = "P"
+                maxContent = String(text.dropLast(3)) // Remove "(P)"
+            }
+            
+            if maxContent.hasSuffix(")") {
+                let content = String(maxContent.dropFirst(4).dropLast(1))
+                let subjects = content.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                
+                // If level was found after max(), apply it to all subjects
+                if !level.isEmpty {
+                    components.append(.maxFunction(subjects.map { (name: formatSubject($0).name, level: level) }))
+                } else {
+                    components.append(.maxFunction(subjects.map { formatSubject($0) }))
+                }
+                return components
+            }
+        }
+        
+        if let number = Double(text) {
+            components.append(.coefficient(number))
+            return components
+        }
+        
+        components.append(.subject(formatSubject(text)))
+        return components
+    }
+    
+    private func formatSubject(_ subject: String) -> (name: String, level: String) {
+        var cleanSubject = subject
+        var level = ""
+        
+        // Debug print
+        print("Formatting subject: '\(subject)'")
+        
+        // Extract level from parentheses - handle all cases
+        if subject.contains("(R)") || subject.contains(" (R)") || subject.contains("( R )") {
+            level = "R"
+            cleanSubject = subject
+                .replacingOccurrences(of: " ( R )", with: "")
+                .replacingOccurrences(of: "( R )", with: "")
+                .replacingOccurrences(of: " (R)", with: "")
+                .replacingOccurrences(of: "(R)", with: "")
+                .trimmingCharacters(in: .whitespaces)
+        } else if subject.contains("(P)") || subject.contains(" (P)") || subject.contains("( P )") {
+            level = "P"
+            cleanSubject = subject
+                .replacingOccurrences(of: " ( P )", with: "")
+                .replacingOccurrences(of: "( P )", with: "")
+                .replacingOccurrences(of: " (P)", with: "")
+                .replacingOccurrences(of: "(P)", with: "")
+                .trimmingCharacters(in: .whitespaces)
+        }
+        
+        let subjectMap: [String: String] = [
+            "matematyka": "mat",
+            "fizyka": "fiz",
+            "chemia": "chem",
+            "informatyka": "inf",
+            "biologia": "bio",
+            "język polski": "pol",
+            "j. polski": "pol",
+            "język angielski": "ang",
+            "j. angielski": "ang",
+            "język obcy": "j.ob",
+            "j. obcy": "j.ob",
+            "geografia": "geo",
+            "historia": "hist",
+            "wos": "WOS",
+            "wiedza o społeczeństwie": "WOS"
+        ]
+        
+        if let mappedName = subjectMap[cleanSubject.lowercased()] {
+            cleanSubject = mappedName
+        }
+        
+        return (name: cleanSubject, level: level)
+    }
+    
+    enum FormulaElement {
+        case coefficient(Double)
+        case subject((name: String, level: String))
+        case mathOperator(String)
+        case maxFunction([(name: String, level: String)])
+        
+        var view: some View {
+            Group {
+                switch self {
+                case .coefficient(let value):
+                    Text(value == 1.0 ? "" : (value == floor(value) ? String(format: "%.0f", value) : String(format: "%.1f", value)))
+                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .foregroundColor(.primary)
+                    
+                case .subject(let info):
+                    HStack(spacing: 0) {
+                        Text(info.name)
+                            .font(.system(size: 15))
+                        if !info.level.isEmpty {
+                            Text(info.level)
+                                .font(.system(size: 8, weight: .medium))
+                                .baselineOffset(7)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                case .mathOperator(let op):
+                    Text(op == "*" ? "×" : op)
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 4)
+                    
+                case .maxFunction(let subjects):
+                    HStack(spacing: 0) {
+                        Text("max")
+                            .font(.system(size: 14, weight: .medium))
+                        Text("(")
+                            .font(.system(size: 16))
+                        ForEach(subjects.indices, id: \.self) { index in
+                            HStack(spacing: 0) {
+                                Text(subjects[index].name)
+                                    .font(.system(size: 14))
+                                if !subjects[index].level.isEmpty {
+                                    Text(subjects[index].level)
+                                        .font(.system(size: 7, weight: .medium))
+                                        .baselineOffset(6)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            if index < subjects.count - 1 {
+                                Text(", ")
+                                    .font(.system(size: 14))
+                            }
+                        }
+                        Text(")")
+                            .font(.system(size: 16))
+                    }
+                }
+            }
         }
     }
 }

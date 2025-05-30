@@ -188,7 +188,7 @@ struct BookmarkedProgramRow: View {
                     
                     Text(university.shortName ?? String(university.name.prefix(2)))
                         .font(.caption)
-                        .fontWeight(.bold)
+                        .bold()
                         .foregroundColor(.blue)
                 }
                 

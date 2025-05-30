@@ -41,7 +41,8 @@ enum Degree: String, Codable, CaseIterable {
 
 struct AdmissionRequirements: Codable {
     var description: String? // Polish description of admission criteria
-    var formula: String // calculation formula description
+    var formula: Formula? // Structured formula for point calculation
+    var formulaId: String? // Reference to formula stored in database
     var minimumPoints: Double?
     var additionalExams: [String]
     var documents: [String]
